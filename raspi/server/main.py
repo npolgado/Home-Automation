@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-import datetime, urllib, webbrowser, time, simplejson, os
+import datetime, urllib
 from bs4 import BeautifulSoup
 import lxml
 from lxml import etree
@@ -9,15 +9,18 @@ import urllib
 import pprint
 
 PAUSE = 0.3
-app = Flask(__name__)
 daily_source = "https://fuckinghomepage.com/"
+app = Flask(__name__)
 
-# def open_links():
-#     print("[DEBUG] opening all links...")
-#     for link in reversed(LINKS):
-#         print(f"[DEBUG] opening {link}...")
-#         webbrowser.open(link, new=0, autoraise=True)
-#         time.sleep(PAUSE)
+PARTY = False               # Bedroom LED toggle status
+DETECT_TRIGGERED = False    # Motion Sensors bool
+TV_TOGGLE = False           # TV on/off
+
+def init():
+    pass
+
+def init_ir():
+    pass
 
 def extract_daily(source):
     LINKS = []
@@ -55,7 +58,7 @@ def home():
 
     # formatting data to be sent returned
     templateData = {
-        'title' : 'HELLO!',
+        'title' : 'piTV-DASH',
         'time': timeString,
         'article': links[0],
         'book': links[1],
@@ -69,4 +72,6 @@ def home():
     return render_template('index.html', **templateData)
 
 if __name__ == "__main__":
+    init_ir()
+    init()
     app.run(host='0.0.0.0', port=80, debug=True)
