@@ -19,9 +19,6 @@ TV_TOGGLE = False           # TV on/off
 def init():
     pass
 
-def init_ir():
-    pass
-
 def extract_daily(source):
     LINKS = []
     page = urllib.request.urlopen(source)
@@ -58,7 +55,7 @@ def home():
 
     # formatting data to be sent returned
     templateData = {
-        'title' : 'piTV-DASH',
+        'title' : 'mancave',
         'time': timeString,
         'article': links[0],
         'book': links[1],
@@ -72,6 +69,5 @@ def home():
     return render_template('index.html', **templateData)
 
 if __name__ == "__main__":
-    init_ir()
     init()
     app.run(host='0.0.0.0', port=80, debug=True)

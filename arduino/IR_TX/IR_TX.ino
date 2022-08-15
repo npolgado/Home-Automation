@@ -107,11 +107,5 @@ void setup() {
 }
 
 void loop() {
-  my_blink(100, 10);
-  delay(1000);
-  LED_ON();
-  delay(1000);
-  SET_LED_BRIGHTNESS(4);
-  delay(1000);
-  LED_OFF();
+
 }

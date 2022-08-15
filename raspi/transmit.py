@@ -1,43 +1,59 @@
-import RPi.GPIO as GPIO  # import gpio
-import time  # import time library
+import RPi.GPIO as GPIO
+import time
 import spidev
-from lib_nrf24 import NRF24  # import NRF24 library
+from lib_nrf24 import NRF24
 
-GPIO.setmode(GPIO.BCM)       # set the gpio mode
-# set the pipe address. this address shoeld be entered on the receiver alo
+radio = NRF24(GPIO, spidev.SpiDev())
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE0], [0xF1, 0xF1, 0xF0, 0xF0, 0xE0]]
 
-radio = NRF24(GPIO, spidev.SpiDev())   # use the gpio pins
-# start the radio and set the ce,csn pin ce= GPIO08, csn= GPIO25
-radio.begin(0, 25)
-radio.setPayloadSize(32)  # set the payload size as 32 bytes
-radio.setChannel(0x76)  # set the channel as 76 hex
-radio.setDataRate(NRF24.BR_1MBPS)    # set radio data rate
-radio.setPALevel(NRF24.PA_MAX)  # set PA level
+def init():
+    GPIO.setmode(GPIO.BCM)
+    # start the radio and set the ce,csn pin ce= GPIO08, csn= GPIO25
+    radio.begin(0, 25)
+    radio.setPayloadSize(32)
+    radio.setChannel(0x76)
+    radio.setDataRate(NRF24.BR_1MBPS)
+    radio.setPALevel(NRF24.PA_MAX)
 
-radio.setAutoAck(True)       # set acknowledgement as true
-radio.enableDynamicPayloads()
-radio.enableAckPayload()
+    radio.setAutoAck(True)
+    radio.enableDynamicPayloads()
+    radio.enableAckPayload()
 
-radio.openWritingPipe(pipes[0])     # open the defined pipe for writing
-radio.printDetails()      # print basic detals of radio
+    radio.openWritingPipe(pipes[0])
+    radio.printDetails()
 
-sendMessage = list("Hi..Arduino UNO")  # the message to be sent
+def TX(message):
+    '''
+    input: string of message
+    output: 32 bit msg
+    '''
+    tmp = list(message)
+    while len(tmp) < 32:
+        tmp.append(0)
+    
+    radio.write(tmp)
+
+sendMessage = list("Hi..Arduino UNO")
 while len(sendMessage) < 32:
     sendMessage.append(0)
 
+if __name__ == "__main__":
+    init()
 
-while True:
-    start = time.time()  # start the time for checking delivery time
-    radio.write(sendMessage)   # just write the message to radio
-    # print a message after succesfull send
-    print("Sent the message: {}".format(sendMessage))
-    radio.startListening()        # Start listening the radio
-    while not radio.available(0):
-        time.sleep(1/100)
-        if time.time() - start > 2:
-            # print errror message if radio disconnected or not functioning anymore
-            print("Timed out.")
-            break
-    radio.stopListening()     # close radio
-    time.sleep(3)  # give delay of 3 seconds
+    while True:
+        # TX
+        start = time.time()
+        radio.write(sendMessage)
+        print("Sent the message: {}".format(sendMessage))
+
+        # RX
+        radio.startListening()
+        while not radio.available(0):
+            time.sleep(1/100)
+            if time.time() - start > 2:
+                print("Timed out.")
+                break
+        radio.stopListening()
+
+        # TIMEOUT
+        time.sleep(3)
