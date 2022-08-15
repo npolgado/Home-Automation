@@ -7,10 +7,10 @@
 ## Quickstart:
 
 ## TO DO:
--Rasp Pi HA / Plex Setup
--HA SETUP WITH CUSTOM NODES
+-Rasp Pi HA / Plex / Webhost Setup
+-HA SETUP WITH CUSTOM NODES (arduino base?)
 -Pi Base node logic
-  -Special Protocol (Similar to AUV)
+  -Special Protocol (Similar to AUV) for pi <--> arduino
   -Command / Telemetry / ACK / CRC / UPDATES?? / WEB UPDATED? 
 -NRF24 networking based on NRF24L01+ and libraries
 
