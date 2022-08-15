@@ -12,9 +12,19 @@ unsigned int LED_BRIGHTEN = 0x5C;
 unsigned int LED_DIM = 0x5D;
 
 unsigned int LED_STATE = 0b00000111;
-// 0 (i/o state) 0 (fade bool) 0 (jump bool) 0 (X) 0 (X) 0 (BRIGHTNESS BIT 2) 0 (BRIGHTNESS BIT 1) 0 (BRIGHTNESS BIT 0)
+/* 
+0 (i/o state) 
+0 (fade bool) 
+0 (jump bool) 
+0 (X) 0 (X) 
+0 (BRIGHTNESS BIT 2) 
+0 (BRIGHTNESS BIT 1) 
+0 (BRIGHTNESS BIT 0)
+*/
 
 unsigned int IO_MASK = 0b10000000;
+unsigned int FADE_MASK = 0b01000000;
+unsigned int JUMP_MASK = 0b00100000;
 unsigned int BRIGHTNESS_MASK = 0b00000111;
 
 void LED_ON(){
