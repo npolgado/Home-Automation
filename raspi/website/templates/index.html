@@ -1,27 +1,18 @@
-<!DOCTYPE html>
-   <head lang="en">
-      <meta charset="UTF-8">
-      <title>{{ title }}</title>
-      <link rel="stylesheet" href="../static/style.css/">
-   </head>
-
-   <div class="content">
-      <body>
-         <h1>Mancave</h1>
-         <h2>{{ time }}</h2>
-         <h3>
-           <a href={{ article }}>Article</a>
-           <br/>
-           <a href={{ book }}>Book</a>
-           <br/>
-           <a href={{ gift }}>Gift Idea</a>
-           <br/>
-           <a href={{ website }}>Website</a>
-           <br/>
-           <a href={{ video }}>{{ v_title }}</a>
-           <br/>
-         </h3>
-      </body>
-   </div>
-
-</html>
+{% extends "base.html" %} {% block title %}Mancave - Links{% endblock %} {%
+block content %}
+<body>
+  <h2>{{ time }}</h2>
+  <h3>
+    <a href={{ article }}>Article</a>
+    <br />
+    <a href={{ book }}>Book</a>
+    <br />
+    <a href={{ gift }}>Gift Idea</a>
+    <br />
+    <a href={{ website }}>Website</a>
+    <br />
+    <a href={{ video }}>{{ v_title }}</a>
+    <br />
+  </h3>
+</body>
+{% endblock %}
