@@ -11,6 +11,7 @@ import pprint
 PAUSE = 0.3
 daily_source = "https://fuckinghomepage.com/"
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'blah blah'
 
 PARTY = False               # Bedroom LED toggle status
 DETECT_TRIGGERED = False    # Motion Sensors bool
