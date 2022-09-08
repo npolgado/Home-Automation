@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import lxml
 import pprint
 import urllib.request
+import datetime
 from datetime import date
 
 views = Blueprint('views', __name__)
@@ -65,9 +66,10 @@ def home():
 
 @views.route('/links', methods=['GET'])
 def links():
+    now = datetime.datetime.now()
     timeString = now.strftime("%Y-%m-%d %H:%M")
     
-    print("\n\n QUERY=\n\n {}".format(Daily.query.filter_by(date=date.today())))
+    print("\n\n QUERY=\n\n {}".format(Daily.query.get(1)))
 
     if Daily.query.filter_by(date=date.today()):
         daily_links = Daily.query.filter_by(date=date.today()).first_or_404()
