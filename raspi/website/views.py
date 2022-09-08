@@ -1,16 +1,15 @@
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask_login import login_required, current_user
-from .models import Note
+from .models import Note, Daily
 from . import db
 import json
-import datetime, urllib
+import datetime
+import urllib
 from bs4 import BeautifulSoup
 import lxml
-from lxml import etree
-import urllib.request
-import json
-import urllib
 import pprint
+import urllib.request
+from datetime import date
 
 views = Blueprint('views', __name__)
 
@@ -33,8 +32,9 @@ def extract_daily(source):
 
 def get_video_name(source):
     try:
-        VideoID = str(source).split("=")[1] 
-        params = {"format": "json", "url": "https://www.youtube.com/watch?v=%s" % VideoID}
+        VideoID = str(source).split("=")[1]
+        params = {"format": "json",
+                  "url": "https://www.youtube.com/watch?v=%s" % VideoID}
         url = "https://www.youtube.com/oembed"
         query_string = urllib.parse.urlencode(params)
         url = url + "?" + query_string
@@ -62,27 +62,57 @@ def home():
 
     return render_template("home.html", user=current_user)
 
-@views.route('/links', methods=['GET']) 
+
+@views.route('/links', methods=['GET'])
 def links():
-
-    # time data
-    now = datetime.datetime.now()
     timeString = now.strftime("%Y-%m-%d %H:%M")
-    links = extract_daily(daily_source)
+    
+    print("\n\n QUERY=\n\n {}".format(Daily.query.filter_by(date=date.today())))
 
-    # formatting data to be sent returned
-    templateData = {
-        'title' : 'mancave',
-        'time': timeString,
-        'article': links[0],
-        'book': links[1],
-        'gift': links[2],
-        'website': links[3],
-        'video': links[4],
-        'v_title': get_video_name(links[4])
-    }
+    if Daily.query.filter_by(date=date.today()):
+        daily_links = Daily.query.filter_by(date=date.today()).first_or_404()
 
-    return render_template("index.html", **templateData, user=current_user)
+        # formatting data to be sent returned
+        templateData = {
+            'title': 'mancave',
+            'time': timeString,
+            'article': daily_links.article,
+            'book': daily_links.book,
+            'gift': daily_links.gift,
+            'website': daily_links.weblink,
+            'video': daily_links.video,
+            'v_title': daily_links.video_title
+        }
+
+    else:
+        # time data
+        now = datetime.datetime.now()
+        links = extract_daily(daily_source)
+
+        new_daily = Daily(article=links[0],
+            book=links[1],
+            gift=links[2],
+            weblink=links[3],
+            video=links[4],
+            video_title=get_video_name(links[4])
+        )
+
+        db.session.add(new_daily)
+        db.session.commit()
+
+        # formatting data to be sent returned
+        templateData = {
+            'title': 'mancave',
+            'time': timeString,
+            'article': new_daily.article,
+            'book': new_daily.book,
+            'gift': new_daily.gift,
+            'website': new_daily.weblink,
+            'video': new_daily.video,
+            'v_title': new_daily.video_title
+        }
+
+    return render_template("links.html", **templateData, user=current_user)
 
 
 @views.route('/delete-note', methods=['POST'])
