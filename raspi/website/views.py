@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import lxml
 import pprint
 import urllib.request
+import os, sys
 import datetime
 from datetime import date
 
@@ -135,8 +136,10 @@ def delete_note():
 
 @views.route('/LED_ON')
 def LED_ON():
-    
-    return redirect(url_for('/'))
+    transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'network/transmit.py')
+    print(transmit)
+    os.system(transmit + " 10011111")
+    return redirect(url_for('views.home'))
 
 @views.errorhandler(404)
 def page_not_found(error):

@@ -20,8 +20,8 @@ unsigned int LED_STATE = 0b00000111;
 0 (i/o state) 1 is HIGH
 0 (fade bool) 1 is HIGH
 0 (jump bool) 1 is HIGH
-0 (enable Flash)
-0 (enable Color)
+0 (enable Color bit 0)
+0 (enable Color bit 1)
 0 (BRIGHTNESS BIT 2)
 0 (BRIGHTNESS BIT 1)
 0 (BRIGHTNESS BIT 0)
@@ -30,10 +30,10 @@ unsigned int LED_STATE = 0b00000111;
 unsigned int IO_MASK = 0b10000000;
 unsigned int FADE_MASK = 0b01000000;
 unsigned int JUMP_MASK = 0b00100000;
-unsigned int ALERT_MASK = 0b00011000;
+unsigned int COLOR_MASK = 0b00011000;
 unsigned int BRIGHTNESS_MASK = 0b00000111;
 
-int LED_TIMEOUT = 500;
+int LED_TIMEOUT = 250;
 
 void do_blink(int blink_speed, int blink_length)
 {
@@ -58,12 +58,12 @@ void send_command(int command)
     delay(LED_TIMEOUT);
 }
 
-void process_change(int val)
+void process_change(uint8_t val)
 {
-    int io = (val & IO_MASK);
-    int party = (val & JUMP_MASK);
-    int fade = (val & FADE_MASK);
-    int alert = (val & ALERT_MASK);
+    int io = (val & IO_MASK) >> 7;
+    int party = (val & JUMP_MASK) >> 5;
+    int fade = (val & FADE_MASK) >> 6;
+    int color = (val & COLOR_MASK) >> 3;
     int brightness = (val & BRIGHTNESS_MASK);
 
     // check if on / off matches
@@ -77,11 +77,7 @@ void process_change(int val)
         return;
     }
 
-    // do brightness
-    if (brightness)
-    {
-        SET_LED_BRIGHTNESS(brightness);
-    }
+    SET_LED_BRIGHTNESS(brightness);
 
     // check for fade first
     if (fade)
@@ -100,30 +96,22 @@ void process_change(int val)
     // check for alert
     if (alert)
     {
-        int color = (alert & 0b1);
         SET_LED_BRIGHTNESS(7);
-
-        if (alert >> 1) // bit one of alert --> flash enable
-        {
-            if (color) // 0 = Red, 1 = Blue
-            {
-                ALERT(LED_BLUE, 60, 10);
-            }
-            else
-            {
-                ALERT(LED_RED, 60, 10);
-            }
+        if (color == 0){
+            ALERT(LED_BLUE, 60, 10);
         }
-        else // flash not enabled, only color
-        {
-            if (color)
-            {
-                send_command(LED_BLUE);
-            }
+        else if (color == 1){
+            ALERT(LED_RED, 60, 10);
+        }
+        else if (color == 2){
+            ALERT(LED_GREEN, 60, 10);
+        }
+        else if (color == 3){
+            ALERT(LED_WHITE, 60, 10);
         }
 
-        LED_STATE &= ~ALERT_MASK;
-        LED_STATE |= (alert << 3);
+        LED_STATE &= ~COLOR_MASK;
+        LED_STATE |= (color << 3);
     }
 }
 
@@ -270,7 +258,8 @@ void loop(void)
             Serial.println(receivedMessage);
 
             // if __ send this command
-            int val = atoi(receivedMessage);
+            uint8_t val = atoi(receivedMessage);
+            Serial.println(val);
             if ((val - LED_STATE) == 0)
             {
                 Serial.println("no state change");
