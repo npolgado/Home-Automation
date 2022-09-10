@@ -67,12 +67,14 @@ def home():
 @views.route('/links', methods=['GET'])
 def links():
     now = datetime.datetime.now()
+    yesterday = now - datetime.timedelta(days=1)
     timeString = now.strftime("%Y-%m-%d %H:%M")
-    
-    print("\n\n QUERY=\n\n {}".format(Daily.query.get(1)))
+    print("\n\ntoday = {}\n".format(now))
+    print("yesterday = {}".format(yesterday))
+    print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).all()))
 
-    if Daily.query.filter_by(date=date.today()):
-        daily_links = Daily.query.filter_by(date=date.today()).first_or_404()
+    if Daily.query.filter(Daily.date >= yesterday).all():
+        daily_links = Daily.query.filter(Daily.date >= yesterday).first_or_404()
 
         # formatting data to be sent returned
         templateData = {

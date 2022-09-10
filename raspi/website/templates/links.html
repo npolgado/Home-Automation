@@ -1,18 +1,13 @@
 {% extends "base.html" %} {% block title %}Mancave - Links{% endblock %} {%
 block content %}
 <body>
-  <h3>
-    <ul>
-      <li><a href="{{" article }}>Article</a></li>
-      <br />
-      <li><a href="{{" book }}>Book</a></li>
-      <br />
-      <li><a href="{{" gift }}>Gift Idea</a></li>
-      <br />
-      <li><a href="{{" website }}>Website</a></li>
-      <br />
-      <li><a href="{{" video }}>{{ v_title }}</a></li>
-    </ul>
-  </h3>
+  <br />
+  <ul class="nav">
+    <li><a href={{ article }}>Article</a></li>
+    <li><a href={{ book }}>Book</a></li>
+    <li><a href={{ gift }}>Gift Idea</a></li>
+    <li><a href={{ website }}>Website</a></li>
+    <li><a href={{ video }}>{{ v_title }}</a></li>
+  </ul>
 </body>
 {% endblock %}
