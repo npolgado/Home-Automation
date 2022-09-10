@@ -138,7 +138,9 @@ def delete_note():
 def LED_ON():
     transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'network/transmit.py')
     print(transmit)
-    os.system(transmit + " 10011111")
+    cmd = transmit + " 10011111"
+    os.system('{} {}'.format('python', cmd))
+    # os.system(transmit + " 10011111")
     return redirect(url_for('views.home'))
 
 @views.errorhandler(404)
