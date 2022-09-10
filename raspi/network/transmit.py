@@ -1,5 +1,5 @@
 import RPi.GPIO as GPIO
-import time
+import time, sys
 import spidev
 from lib_nrf24 import NRF24
 
@@ -33,27 +33,40 @@ def TX(message):
     
     radio.write(tmp)
 
-sendMessage = list("Hi..Arduino UNO")
-while len(sendMessage) < 32:
-    sendMessage.append(0)
+# sendMessage = list("Hi..Arduino UNO")
+# while len(sendMessage) < 32:
+#     sendMessage.append(0)
 
 if __name__ == "__main__":
-    init()
+    args = sys.argv
+    arg_len = int(len(args))
+    print(args)
+    try:
+        message_channel = list(args[1])
+        sendMessage = list(args[2])
+        init(message_channel)
+    except:
+        try:
+            sendMessage = list(args[1])
+            init()
+        except:
+            print("no input...\n\n")
+            sys.exit()        
+    radio.write(sendMessage)
+    print("Sent the message: {}".format(str(sendMessage)))
+    sys.exit()  
 
-    while True:
-        # TX
-        start = time.time()
-        radio.write(sendMessage)
-        print("Sent the message: {}".format(sendMessage))
+    # while True:
+    #     # TX
+    #     start = time.time()
+    #     radio.write(sendMessage)
+    #     print("Sent the message: {}".format(sendMessage))
 
-        # RX
-        radio.startListening()
-        while not radio.available(0):
-            time.sleep(1/100)
-            if time.time() - start > 2:
-                print("Timed out.")
-                break
-        radio.stopListening()
-
-        # TIMEOUT
-        time.sleep(3)
+    #     # RX
+    #     radio.startListening()
+    #     while not radio.available(0):
+    #         time.sleep(1/100)
+    #         if time.time() - start > 2:
+    #             print("Timed out.")
+    #             break
+    #     radio.stopListening()
