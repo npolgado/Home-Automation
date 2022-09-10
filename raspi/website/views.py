@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask_login import login_required, current_user
+from flask import abort, redirect, url_for
 from .models import Note, Daily
 from . import db
 import json
@@ -130,3 +131,13 @@ def delete_note():
             db.session.commit()
 
     return jsonify({})
+
+
+@views.route('/LED_ON')
+def LED_ON():
+    
+    return redirect(url_for('/'))
+
+@views.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html'), 404

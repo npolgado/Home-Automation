@@ -6,12 +6,12 @@ from lib_nrf24 import NRF24
 radio = NRF24(GPIO, spidev.SpiDev())
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE0], [0xF1, 0xF1, 0xF0, 0xF0, 0xE0]]
 
-def init():
+def init(channel=0x76):
     GPIO.setmode(GPIO.BCM)
     # start the radio and set the ce,csn pin ce= GPIO08, csn= GPIO25
     radio.begin(0, 25)
     radio.setPayloadSize(32)
-    radio.setChannel(0x76)
+    radio.setChannel(channel)
     radio.setDataRate(NRF24.BR_1MBPS)
     radio.setPALevel(NRF24.PA_MAX)
 
