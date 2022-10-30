@@ -1,7 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify
-from flask_login import login_required, current_user
 from flask import abort, redirect, url_for
-from .models import Note, Daily
+from .models import Daily
 from . import db
 import json
 import datetime
@@ -18,11 +17,6 @@ views = Blueprint('views', __name__)
 
 PAUSE = 0.3
 daily_source = "https://fuckinghomepage.com/"
-
-PARTY = False               # Bedroom LED toggle status
-DETECT_TRIGGERED = False    # Motion Sensors bool
-TV_TOGGLE = False           # TV on/off
-
 
 def extract_daily(source):
     LINKS = []
@@ -49,34 +43,32 @@ def get_video_name(source):
     except:
         return "Random Video"
 
-@views.route('/', methods=['GET', 'POST'])
-@login_required
+@views.route('/', methods=['GET'])
 def home():
-    if request.method == 'POST':
-        note = request.form.get('note')
+    return render_template("home.html")
 
-        if len(note) < 1:
-            flash('Note is too short!', category='error')
-        else:
-            new_note = Note(data=note, user_id=current_user.id)
-            db.session.add(new_note)
-            db.session.commit()
-            flash('Note added!', category='success')
-
-    return render_template("home.html", user=current_user)
-
+@views.route('/links-history', methods=['GET'])
+def links_history():
+    ans = Daily.query.all()
+    return render_template("table.html", all_dailies=ans)
 
 @views.route('/links', methods=['GET'])
 def links():
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=1)
     timeString = now.strftime("%Y-%m-%d %H:%M")
-    print("\n\ntoday = {}\n".format(now))
-    print("yesterday = {}".format(yesterday))
-    print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).all()))
+    # print("\n\ntoday = {}\n".format(now))
+    # print("yesterday = {}".format(yesterday))
+    print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).first_or_404()))
 
-    if Daily.query.filter(Daily.date >= yesterday).all():
-        daily_links = Daily.query.filter(Daily.date >= yesterday).first_or_404()
+    try:
+        # finds first db entry thats within 24 hours of now
+        last_pull = Daily.query.filter(Daily.date >= yesterday).first_or_404()
+    except:
+        last_pull = None
+    
+    if last_pull:
+        daily_links = last_pull
 
         # formatting data to be sent returned
         templateData = {
@@ -89,10 +81,8 @@ def links():
             'video': daily_links.video,
             'v_title': daily_links.video_title
         }
-
     else:
         # time data
-        now = datetime.datetime.now()
         links = extract_daily(daily_source)
 
         new_daily = Daily(article=links[0],
@@ -100,7 +90,8 @@ def links():
             gift=links[2],
             weblink=links[3],
             video=links[4],
-            video_title=get_video_name(links[4])
+            video_title=get_video_name(links[4]),
+            date=timeString
         )
 
         db.session.add(new_daily)
@@ -118,29 +109,15 @@ def links():
             'v_title': new_daily.video_title
         }
 
-    return render_template("links.html", **templateData, user=current_user)
-
-
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    note = json.loads(request.data)
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
-            db.session.commit()
-
-    return jsonify({})
-
+    return render_template("links.html", **templateData)
 
 @views.route('/LED_ON')
 def LED_ON():
-    transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'network/transmit.py')
-    print(transmit)
+    transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'transmit.py')
     cmd = transmit + " 10011111"
-    os.system('{} {}'.format('python', cmd))
-    # os.system(transmit + " 10011111")
+    cmd = '{} {} {}'.format('sudo', 'python', cmd)
+    print(f"running command {cmd}")
+    # os.system(cmd)
     return redirect(url_for('views.home'))
 
 @views.errorhandler(404)

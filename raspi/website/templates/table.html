@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <table id="data" class="table table-striped">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Article</th>
+        <th>Book</th>
+        <th>Gift</th>
+        <th>Weblink</th>
+        <th>Video Title</th>
+        <th>Video</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for daily in all_dailies %}
+        <tr>
+            <td>{{ daily.date }}</th>
+            <td><li><a href={{ daily.article }}>Article</a></li></th>
+            <td><li><a href={{ daily.book }}>Book</a></li></th>
+            <td><li><a href={{ daily.gift }}>Gift</a></li></th>
+            <td><li><a href={{ daily.weblink }}>Website</a></li></th>
+            <td>{{ daily.video_title }}</th>
+            <td><li><a href={{ daily.video }}>Video</a></li></th>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

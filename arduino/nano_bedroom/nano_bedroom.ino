@@ -27,7 +27,7 @@ unsigned int LED_STATE = 0b00000111;
 0 (BRIGHTNESS BIT 0)
 */
 
-unsigned int IO_MASK = 0b10000000;
+unsigned int IO_MASK = 0b10000000; 
 unsigned int FADE_MASK = 0b01000000;
 unsigned int JUMP_MASK = 0b00100000;
 unsigned int COLOR_MASK = 0b00011000;
@@ -58,7 +58,7 @@ void send_command(int command)
     delay(LED_TIMEOUT);
 }
 
-void process_change(uint8_t val)
+void process_change(uint8_t val) 
 {
     int io = (val & IO_MASK) >> 7;
     int party = (val & JUMP_MASK) >> 5;
@@ -249,7 +249,7 @@ void loop(void)
 {
     radio.startListening();
     char receivedMessage[32] = {0};
-    while (True)
+    while (true)
     {
         Serial.println(LED_STATE);
         if (radio.available())

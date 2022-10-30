@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time, sys
 import spidev
-from lib_nrf24 import NRF24
+from raspi.website.lib_nrf24 import NRF24
 
 radio = NRF24(GPIO, spidev.SpiDev())
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE0], [0xF1, 0xF1, 0xF0, 0xF0, 0xE0]]
@@ -41,17 +41,14 @@ if __name__ == "__main__":
     args = sys.argv
     arg_len = int(len(args))
     print(args)
+
+    init()
     try:
-        message_channel = list(args[1])
-        sendMessage = list(args[2])
-        init(message_channel)
+        sendMessage = list(args[1])
     except:
-        try:
-            sendMessage = list(args[1])
-            init()
-        except:
-            print("no input...\n\n")
-            sys.exit()        
+        print("didnt find message to send")
+        sys.exit()  
+ 
     radio.write(sendMessage)
     print("Sent the message: {}".format(str(sendMessage)))
     sys.exit()  
