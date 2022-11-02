@@ -1,0 +1,29 @@
+{% extends "base.html" %} {% block title %}Mancave - Alerts{% endblock %} {%
+block content%}
+<html>
+  <body>
+    <form method="POST">
+      <br />
+      <h3 align="center">Alert Nicolo Picolo</h3>
+      <div class="form-group">
+        <label for="color">Select color:</label>
+        <select name="color" id="color">
+          <option value="ff0000">Red</option>
+          <option value="1e00ff">Blue</option>
+          <option value="00ff33">Green</option>
+          <option value="ffffff">White</option>
+          <option value="0">Party</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" name="en_fast_flashing" value="1" />
+        <label for="fast_flashing"> Fast Flashing!</label><br />
+        <input type="checkbox" name="en_flush" value="1" />
+        <label for="end_off"> End with Lights Off</label><br />
+      </div>
+      <br />
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </body>
+</html>
+{% endblock %}

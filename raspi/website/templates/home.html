@@ -1,5 +1,29 @@
-{% extends "base.html" %} 
-{% block title %}Home{% endblock %} {% block content%}
-<h1>"HELLO"</h1>
-<li><a href="https://apple.com">test</a></li>
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block content%}
+<html>
+  <head>
+    <title>Welcome to the Mancave</title>
+  </head>
+  <body>
+    <h1>Welcome to the Mancave</h1>
+    <p>
+      This is the Mancave, where men can come to relax and unwind. We have all
+      the latest gadgets and games, and a comfortable place to watch the game.
+      Make yourself at home!
+    </p>
+    <div id="tracker">
+      <div class="number">
+        <h2>15</h2>
+        <p>Beers on Tap</p>
+      </div>
+      <div class="number">
+        <h2>5</h2>
+        <p>Flat Screen TVs</p>
+      </div>
+      <div class="number">
+        <h2>1</h2>
+        <p>Pool Table</p>
+      </div>
+    </div>
+  </body>
+</html>
 {% endblock %}

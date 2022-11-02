@@ -17,7 +17,9 @@ class Daily(db.Model):
 # class Home(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
 #     date = db.Column(db.DateTime(timezone=True), default=func.now())
-#     temp = db.Column(db.Float)
+#     temp_bed = db.Column(db.Float)
+#     temp_bath = db.Column(db.Float)
+#     temp_beyond = db.Column(db.Float)
 #     humidity = db.Column(db.Float)
 #     sound = db.Column(db.Float)
 #     light = db.Column(db.Float)

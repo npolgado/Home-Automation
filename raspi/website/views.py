@@ -38,7 +38,7 @@ def get_video_name(source):
         with urllib.request.urlopen(url) as response:
             response_text = response.read()
             data = json.loads(response_text.decode())
-            pprint.pprint(data)
+            # pprint.pprint(data)
             return data['title']
     except:
         return "Random Video"
@@ -49,8 +49,7 @@ def home():
 
 @views.route('/links-history', methods=['GET'])
 def links_history():
-    ans = Daily.query.all()
-    return render_template("table.html", all_dailies=ans)
+    return render_template("table.html", all_dailies=Daily.query.all())
 
 @views.route('/links', methods=['GET'])
 def links():
@@ -59,14 +58,13 @@ def links():
     timeString = now.strftime("%Y-%m-%d %H:%M")
     # print("\n\ntoday = {}\n".format(now))
     # print("yesterday = {}".format(yesterday))
-    print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).first_or_404()))
+    # print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).first_or_404()))
 
     try:
         # finds first db entry thats within 24 hours of now
-        last_pull = Daily.query.filter(Daily.date >= yesterday).first_or_404()
+        last_pull = Daily.query.filter(Daily.date >= yesterday).first()
     except:
         last_pull = None
-    
     if last_pull:
         daily_links = last_pull
 
@@ -91,9 +89,10 @@ def links():
             weblink=links[3],
             video=links[4],
             video_title=get_video_name(links[4]),
-            date=timeString
+            date=now
         )
 
+        print(f"\n{new_daily.article}\n{new_daily.book}\n{new_daily.date}\n{new_daily.gift}\n{new_daily.video}\n{new_daily.video_title}\n{new_daily.weblink}\n")
         db.session.add(new_daily)
         db.session.commit()
 
@@ -111,14 +110,27 @@ def links():
 
     return render_template("links.html", **templateData)
 
-@views.route('/LED_ON')
-def LED_ON():
+@views.route('/led_on')
+def led_on():
     transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'transmit.py')
     cmd = transmit + " 10011111"
     cmd = '{} {} {}'.format('sudo', 'python', cmd)
     print(f"running command {cmd}")
     # os.system(cmd)
     return redirect(url_for('views.home'))
+
+@views.route('/alerts', methods=['GET', 'POST'])
+def alerts():
+    print("DO BACKEND")
+    if request.method == 'POST':
+        color = request.form['color']
+        fast = request.form['en_fast_flashing']
+        flush = request.form['en_flush']
+
+        # TODO: generate transmit.py command
+
+        return redirect(url_for('views.home'))
+    return render_template("alerts.html")
 
 @views.errorhandler(404)
 def page_not_found(error):
