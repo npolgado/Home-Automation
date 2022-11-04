@@ -6,12 +6,10 @@ import json
 import datetime
 import urllib
 from bs4 import BeautifulSoup
-import lxml
-import pprint
 import urllib.request
-import os, sys
+import os
 import datetime
-from datetime import date
+import platform
 
 views = Blueprint('views', __name__)
 
@@ -45,7 +43,23 @@ def get_video_name(source):
 
 @views.route('/', methods=['GET'])
 def home():
-    return render_template("home.html")
+    print(request.args)
+    try:
+        t1 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        t2 = str(f"{platform.machine()} - {platform.platform()} - {platform.processor()}")
+        t3 = str(f"hi {platform.node()}")
+    except Exception as e:
+        print(f"ERROR:\n{e}")
+
+    templateData = {
+        'tracker_1': t1,
+        'tracker_1_desc': 'Exact Moment We Out Here',
+        'tracker_2': t2,
+        'tracker_2_desc': 'What Is Running This Poopy Serber',
+        'tracker_3': t3,
+        'tracker_3_desc': "Deez Nuts"
+    }   
+    return render_template("home.html", **templateData)
 
 @views.route('/links-history', methods=['GET'])
 def links_history():
@@ -56,15 +70,13 @@ def links():
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=1)
     timeString = now.strftime("%Y-%m-%d %H:%M")
-    # print("\n\ntoday = {}\n".format(now))
-    # print("yesterday = {}".format(yesterday))
-    # print("\n QUERY=\n\n {}".format(Daily.query.filter(Daily.date >= yesterday).first_or_404()))
 
     try:
         # finds first db entry thats within 24 hours of now
         last_pull = Daily.query.filter(Daily.date >= yesterday).first()
     except:
         last_pull = None
+
     if last_pull:
         daily_links = last_pull
 
@@ -92,7 +104,7 @@ def links():
             date=now
         )
 
-        print(f"\n{new_daily.article}\n{new_daily.book}\n{new_daily.date}\n{new_daily.gift}\n{new_daily.video}\n{new_daily.video_title}\n{new_daily.weblink}\n")
+        # print(f"\n{new_daily.article}\n{new_daily.book}\n{new_daily.date}\n{new_daily.gift}\n{new_daily.video}\n{new_daily.video_title}\n{new_daily.weblink}\n")
         db.session.add(new_daily)
         db.session.commit()
 
