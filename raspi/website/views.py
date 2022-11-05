@@ -1,3 +1,4 @@
+from sqlalchemy.orm.exc import NoResultFound
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
 from .models import Daily
@@ -15,6 +16,48 @@ views = Blueprint('views', __name__)
 
 PAUSE = 0.3
 daily_source = "https://fuckinghomepage.com/"
+
+def get_or_create(model, **kwargs):
+    """
+    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
+    Usage:
+    class Employee(Base):
+        __tablename__ = 'employee'
+        id = Column(Integer, primary_key=True)
+        name = Column(String, unique=True)
+
+    get_or_create(Employee, name='bob')
+    """
+    instance = get_instance(model, **kwargs)
+    if instance is None:
+        instance = create_instance(model, **kwargs)
+    return instance
+
+def create_instance(model, **kwargs):
+    """
+    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
+    create instance
+    """
+    try:
+        instance = model(**kwargs)
+        db.session.add(instance)
+        db.session.flush()
+    except Exception as msg:
+        mtext = 'model:{}, args:{} => msg:{}'
+        # log.error(mtext.format(model, kwargs, msg))
+        db.session.rollback()
+        raise(msg)
+    return instance
+
+def get_instance(model, **kwargs):
+    """
+    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
+    Return first instance found.
+    """
+    try:
+        return db.session.query(model).filter(**kwargs).first()
+    except NoResultFound:
+        return None
 
 def extract_daily(source):
     LINKS = []
@@ -68,56 +111,49 @@ def links_history():
 @views.route('/links', methods=['GET'])
 def links():
     now = datetime.datetime.now()
-    yesterday = now - datetime.timedelta(days=1)
+    yesterday = now - datetime.timedelta(days=0.5)
     timeString = now.strftime("%Y-%m-%d %H:%M")
 
-    try:
-        # finds first db entry thats within 24 hours of now
-        last_pull = Daily.query.filter(Daily.date >= yesterday).first()
-    except:
-        last_pull = None
+    last_pull = get_instance(Daily, (Daily.date <= yesterday))
+    print(last_pull)
 
-    if last_pull:
-        daily_links = last_pull
+    if last_pull[0]:
 
         # formatting data to be sent returned
         templateData = {
             'title': 'mancave',
             'time': timeString,
-            'article': daily_links.article,
-            'book': daily_links.book,
-            'gift': daily_links.gift,
-            'website': daily_links.weblink,
-            'video': daily_links.video,
-            'v_title': daily_links.video_title
+            'article': last_pull.article,
+            'book': last_pull.book,
+            'gift': last_pull.gift,
+            'website': last_pull.weblink,
+            'video': last_pull.video,
+            'v_title': last_pull.video_title
         }
     else:
         # time data
         links = extract_daily(daily_source)
+        vt = get_video_name(links[4])
 
-        new_daily = Daily(article=links[0],
+        get_or_create(Daily, article=links[0],
             book=links[1],
             gift=links[2],
             weblink=links[3],
             video=links[4],
-            video_title=get_video_name(links[4]),
+            video_title=vt,
             date=now
         )
-
-        # print(f"\n{new_daily.article}\n{new_daily.book}\n{new_daily.date}\n{new_daily.gift}\n{new_daily.video}\n{new_daily.video_title}\n{new_daily.weblink}\n")
-        db.session.add(new_daily)
-        db.session.commit()
 
         # formatting data to be sent returned
         templateData = {
             'title': 'mancave',
             'time': timeString,
-            'article': new_daily.article,
-            'book': new_daily.book,
-            'gift': new_daily.gift,
-            'website': new_daily.weblink,
-            'video': new_daily.video,
-            'v_title': new_daily.video_title
+            'article': links[0],
+            'book': links[1],
+            'gift': links[2],
+            'website': links[3],
+            'video': links[4],
+            'v_title': vt
         }
 
     return render_template("links.html", **templateData)
