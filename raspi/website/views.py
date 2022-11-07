@@ -11,53 +11,15 @@ import urllib.request
 import os
 import datetime
 import platform
+import requests
+from string import Template
 
 views = Blueprint('views', __name__)
 
 PAUSE = 0.3
 daily_source = "https://fuckinghomepage.com/"
 
-def get_or_create(model, **kwargs):
-    """
-    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
-    Usage:
-    class Employee(Base):
-        __tablename__ = 'employee'
-        id = Column(Integer, primary_key=True)
-        name = Column(String, unique=True)
-
-    get_or_create(Employee, name='bob')
-    """
-    instance = get_instance(model, **kwargs)
-    if instance is None:
-        instance = create_instance(model, **kwargs)
-    return instance
-
-def create_instance(model, **kwargs):
-    """
-    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
-    create instance
-    """
-    try:
-        instance = model(**kwargs)
-        db.session.add(instance)
-        db.session.flush()
-    except Exception as msg:
-        mtext = 'model:{}, args:{} => msg:{}'
-        # log.error(mtext.format(model, kwargs, msg))
-        db.session.rollback()
-        raise(msg)
-    return instance
-
-def get_instance(model, **kwargs):
-    """
-    SOURCE = https://stackoverflow.com/questions/44511046/sqlalchemy-prevent-duplicate-rows
-    Return first instance found.
-    """
-    try:
-        return db.session.query(model).filter(**kwargs).first()
-    except NoResultFound:
-        return None
+pattern = '"playabilityStatus":{"status":"ERROR","reason":"Video unavailable"'
 
 def extract_daily(source):
     LINKS = []
@@ -84,9 +46,12 @@ def get_video_name(source):
     except:
         return "Random Video"
 
+def is_url_ok(url):
+    request = requests.get(url)
+    return False if pattern in request.text else True
+
 @views.route('/', methods=['GET'])
 def home():
-    print(request.args)
     try:
         t1 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         t2 = str(f"{platform.machine()} - {platform.platform()} - {platform.processor()}")
@@ -113,12 +78,12 @@ def links():
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=0.5)
     timeString = now.strftime("%Y-%m-%d %H:%M")
+    try:
+        last_pull = Daily.query.filter(Daily.date >= yesterday).first()
+    except:
+        last_pull = None
 
-    last_pull = get_instance(Daily, (Daily.date <= yesterday))
-    print(last_pull)
-
-    if last_pull[0]:
-
+    if last_pull:
         # formatting data to be sent returned
         templateData = {
             'title': 'mancave',
@@ -131,11 +96,10 @@ def links():
             'v_title': last_pull.video_title
         }
     else:
-        # time data
         links = extract_daily(daily_source)
         vt = get_video_name(links[4])
 
-        get_or_create(Daily, article=links[0],
+        new_entry = Daily(article=links[0],
             book=links[1],
             gift=links[2],
             weblink=links[3],
@@ -143,6 +107,18 @@ def links():
             video_title=vt,
             date=now
         )
+        try:
+            duplicate = Daily.query.filter(Daily.article == new_entry.article, Daily.book == new_entry.book,
+                Daily.gift == new_entry.gift, Daily.weblink == new_entry.weblink, Daily.video == new_entry.video,
+                Daily.video_title == new_entry.video_title, Daily.date== new_entry.date
+            ).first()
+            if duplicate: pass
+            else:
+                db.session.add(new_entry)
+                db.session.commit()
+        except Exception as e:
+            print(f"ERROR\n{e}")
+            db.session.rollback()
 
         # formatting data to be sent returned
         templateData = {
