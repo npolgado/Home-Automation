@@ -13,6 +13,7 @@ import datetime
 import platform
 import requests
 from string import Template
+import time
 
 views = Blueprint('views', __name__)
 
@@ -52,6 +53,7 @@ def is_url_ok(url):
 
 @views.route('/', methods=['GET'])
 def home():
+    st = time.monotonic()
     try:
         t1 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         t2 = str(f"{platform.machine()} - {platform.platform()} - {platform.processor()}")
@@ -67,14 +69,24 @@ def home():
         'tracker_3': t3,
         'tracker_3_desc': "Deez Nuts"
     }   
+
+    et = time.monotonic()
+    dt = float(et - st)
+    print(f"[LOG] completed in {dt} seconds")
     return render_template("home.html", **templateData)
 
 @views.route('/links-history', methods=['GET'])
 def links_history():
-    return render_template("table.html", all_dailies=Daily.query.all())
+    st = time.monotonic()
+    pull = Daily.query.all()
+    et = time.monotonic()
+    dt = float(et-st)
+    print(f"[LOG] completed in {dt} seconds")
+    return render_template("table.html", all_dailies=pull)
 
 @views.route('/links', methods=['GET'])
 def links():
+    stime = time.monotonic()
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=0.5)
     timeString = now.strftime("%Y-%m-%d %H:%M")
@@ -132,6 +144,9 @@ def links():
             'v_title': vt
         }
 
+    etime = time.monotonic()
+    dt = float(etime - stime)
+    print(f"[LOG] completed in {dt} seconds")
     return render_template("links.html", **templateData)
 
 @views.route('/led_on')
@@ -145,6 +160,7 @@ def led_on():
 
 @views.route('/alerts', methods=['GET', 'POST'])
 def alerts():
+    st = time.monotonic()
     print("DO BACKEND")
     if request.method == 'POST':
         color = request.form['color']
@@ -152,8 +168,13 @@ def alerts():
         flush = request.form['en_flush']
 
         # TODO: generate transmit.py command
-
+        et = time.monotonic()
+        dt = float(et - st)
+        print(f"[LOG] completed in {dt} seconds")
         return redirect(url_for('views.home'))
+    et = time.monotonic()
+    dt = float(et - st)
+    print(f"[LOG] completed in {dt} seconds")
     return render_template("alerts.html")
 
 @views.errorhandler(404)
