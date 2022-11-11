@@ -56,8 +56,8 @@ def home():
     st = time.monotonic()
     try:
         t1 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        t2 = str(f"{platform.machine()} - {platform.platform()} - {platform.processor()}")
-        t3 = str(f"hi {platform.node()}")
+        t2 = str(f"{platform.node()}: {platform.machine()} -- {platform.platform()}")
+        t3 = str(f"hi ")
     except Exception as e:
         print(f"ERROR:\n{e}")
 
@@ -75,7 +75,7 @@ def home():
     print(f"[LOG] completed in {dt} seconds")
     return render_template("home.html", **templateData)
 
-@views.route('/links-history', methods=['GET'])
+@views.route('/links/history', methods=['GET'])
 def links_history():
     st = time.monotonic()
     pull = Daily.query.all()
