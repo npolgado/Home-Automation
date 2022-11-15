@@ -91,6 +91,7 @@ boolean echoFind(String keyword)
             }
         }
     }
+    Serial.println("SERIAL TIMED OUT");
     return false; // Timed out
 }
 
@@ -101,8 +102,9 @@ boolean SerialCommand(String cmd, String ack)
       return true;       // ack blank or ack found
     }else{
       Serial.println("SERIAL TIMED OUT");
+      return false;
     }
-        
+    return false;        
 }
 
 void update_flask_server(float h, float f, float hif){
@@ -121,8 +123,7 @@ void update_flask_server(float h, float f, float hif){
 
     Serial.println("OPENING CONNECTION WITH ");
     Serial.println("AT+CIPSTART=4,\"TCP\",\"192.168.1.78\",5000\r\n");
-    SerialCommand("AT+CIPSTART=4,\"TCP\",\"192.168.1.78\",5000\r\n", "OK");
-// GET /esp/32.43-23.34-23.22/ HTTP/1.1
+    SerialCommand("AT+CIPSTART=4,\"TCP\",\"192.168.1.141\",5000\r", "OK");
     int len = strlen(dataCommand)-2;
     char lens[5];
     sprintf(lens, "%d", len);
@@ -137,8 +138,9 @@ void update_flask_server(float h, float f, float hif){
 
     Serial.print("send Command ");
     Serial.println(sendCommand);
-
     SerialCommand(sendCommand, ">");
+
+    Serial.println(dataCommand);
     mySerial.print(dataCommand);
     delay(100);
     SerialCommand("AT+CIPCLOSE=4\r\n", "OK");
