@@ -1,6 +1,11 @@
 from website import create_app
+from flask import request
 
-app = create_app()
+app, socket = create_app()
+
+@socket.on('message')
+def handle_message_event(msg):
+    print('received msg from {} : {}'.format(request.remote_addr, str(msg)))
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    socket.run(app, host="0.0.0.0", debug=True)

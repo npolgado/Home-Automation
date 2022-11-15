@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
 from .models import Daily
 from . import db
+# import RPi.GPIO as GPIO
 import json
 import datetime
 import urllib
@@ -20,7 +21,15 @@ views = Blueprint('views', __name__)
 PAUSE = 0.3
 daily_source = "https://fuckinghomepage.com/"
 
+uno_bedroom_ip = "192.168.1.229"
+
 pattern = '"playabilityStatus":{"status":"ERROR","reason":"Video unavailable"'
+
+def clock_start():
+    return time.monotonic()
+
+def clock_end(st):
+    print(f"[LOG] Completed Backend in {float(time.monotonic() - st)}")
 
 def extract_daily(source):
     LINKS = []
@@ -53,7 +62,7 @@ def is_url_ok(url):
 
 @views.route('/', methods=['GET'])
 def home():
-    st = time.monotonic()
+    st = clock_start()
     try:
         t1 = str(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         t2 = str(f"{platform.node()}: {platform.machine()} -- {platform.platform()}")
@@ -70,23 +79,19 @@ def home():
         'tracker_3_desc': "Deez Nuts"
     }   
 
-    et = time.monotonic()
-    dt = float(et - st)
-    print(f"[LOG] completed in {dt} seconds")
+    clock_end(st)
     return render_template("home.html", **templateData)
 
 @views.route('/links/history', methods=['GET'])
 def links_history():
-    st = time.monotonic()
+    st = clock_start()
     pull = Daily.query.all()
-    et = time.monotonic()
-    dt = float(et-st)
-    print(f"[LOG] completed in {dt} seconds")
+    clock_end(st)
     return render_template("table.html", all_dailies=pull)
 
 @views.route('/links', methods=['GET'])
 def links():
-    stime = time.monotonic()
+    st = clock_start()
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=0.5)
     timeString = now.strftime("%Y-%m-%d %H:%M")
@@ -144,23 +149,23 @@ def links():
             'v_title': vt
         }
 
-    etime = time.monotonic()
-    dt = float(etime - stime)
-    print(f"[LOG] completed in {dt} seconds")
+    clock_end(st)
     return render_template("links.html", **templateData)
 
 @views.route('/led_on')
 def led_on():
+    st = clock_start()
     transmit = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'transmit.py')
     cmd = transmit + " 10011111"
     cmd = '{} {} {}'.format('sudo', 'python', cmd)
     print(f"running command {cmd}")
     # os.system(cmd)
+    clock_end(st)
     return redirect(url_for('views.home'))
 
 @views.route('/alerts', methods=['GET', 'POST'])
 def alerts():
-    st = time.monotonic()
+    st = clock_start()
     print("DO BACKEND")
     if request.method == 'POST':
         color = request.form['color']
@@ -172,10 +177,23 @@ def alerts():
         dt = float(et - st)
         print(f"[LOG] completed in {dt} seconds")
         return redirect(url_for('views.home'))
-    et = time.monotonic()
-    dt = float(et - st)
-    print(f"[LOG] completed in {dt} seconds")
+    clock_end(st)
     return render_template("alerts.html")
+
+@views.route('/gpio/<string:id>/<string:level>')
+def setPinLevel(id, level):
+    GPIO.output(int(id), int(level))
+    return "OK"
+
+@views.route('/esp/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
+def esp(humididy, temp, heat_index):
+    st = clock_start()
+
+    print(request.remote_addr)
+    print('received Humidity {}, Temp {}, Heat Index {}'.format(humididy, temp, heat_index))    
+
+    clock_end(st)
+    return ''
 
 @views.errorhandler(404)
 def page_not_found(error):

@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_socketio import SocketIO
 from os import path
 
 db = SQLAlchemy()
@@ -11,6 +12,7 @@ def create_app():
     app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     db.init_app(app)
+    socket = SocketIO(app)
 
     from .views import views
     app.register_blueprint(views, url_prefix='/')
@@ -18,7 +20,7 @@ def create_app():
     from .models import Daily
     create_database(app)
 
-    return app
+    return app, socket
 
 
 def create_database(app):
