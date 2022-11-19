@@ -11,18 +11,22 @@
         <th>Weblink</th>
         <th>Video Title</th>
         <th>Video</th>
+        <th>EDIT</th>
       </tr>
     </thead>
     <tbody>
       {% for daily in all_dailies %}
         <tr>
-            <td>{{ daily.date }}</th>
-            <td><li><a href={{ daily.article }}>Article</a></li></th>
-            <td><li><a href={{ daily.book }}>Book</a></li></th>
-            <td><li><a href={{ daily.gift }}>Gift</a></li></th>
-            <td><li><a href={{ daily.weblink }}>Website</a></li></th>
-            <td>{{ daily.video_title }}</th>
-            <td><li><a href={{ daily.video }}>Video</a></li></th>
+          <td>{{ daily.date }}</th>
+          <td><a href={{ daily.article }}>Article</a></th>
+          <td><a href={{ daily.book }}>Book</a></th>
+          <td><a href={{ daily.gift }}>Gift</a></th>
+          <td><a href={{ daily.weblink }}>Website</a></th>
+          <td>{{ daily.video_title }}</th>
+          <td><a href={{ daily.video }}>Video</a></th>
+          <td>
+            <a href="/delete/{{ daily.date }}">Delete</a>
+          </td>
         </tr>
       {% endfor %}
     </tbody>

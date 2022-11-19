@@ -89,6 +89,15 @@ def links_history():
     clock_end(st)
     return render_template("table.html", all_dailies=pull)
 
+@views.route('/delete/<db_entry_date>', methods=['GET'])
+def delete(db_entry_date):
+    print(db_entry_date)
+    query = Daily.query.filter(Daily.date == db_entry_date).first()
+
+    if query:
+        print(f"attempting to remove {query}")
+    return links_history()
+
 @views.route('/links', methods=['GET'])
 def links():
     st = clock_start()
@@ -127,7 +136,7 @@ def links():
         try:
             duplicate = Daily.query.filter(Daily.article == new_entry.article, Daily.book == new_entry.book,
                 Daily.gift == new_entry.gift, Daily.weblink == new_entry.weblink, Daily.video == new_entry.video,
-                Daily.video_title == new_entry.video_title, Daily.date== new_entry.date
+                Daily.video_title == new_entry.video_title
             ).first()
             if duplicate: pass
             else:
