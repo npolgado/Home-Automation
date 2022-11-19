@@ -29,7 +29,7 @@ def clock_start():
     return time.monotonic()
 
 def clock_end(st):
-    print(f"[LOG] Completed Backend in {float(time.monotonic() - st)}")
+    print(f"\n[LOG] Completed Backend in {float(time.monotonic() - st)*1000} ms\n")
 
 def extract_daily(source):
     LINKS = []
@@ -95,7 +95,14 @@ def delete(db_entry_date):
     query = Daily.query.filter(Daily.date == db_entry_date).first()
 
     if query:
-        print(f"attempting to remove {query}")
+        print(f"\n[LOG] attempting to remove {query}\n")
+        try:
+            db.session.delete(query)
+            db.session.commit()
+        except Exception as e:
+            print(f"\n[ERROR]\n{e}\n")
+            db.session.rollback()
+    else: print(f"\n[LOG] couldn't find query...")
     return links_history()
 
 @views.route('/links', methods=['GET'])
@@ -143,7 +150,7 @@ def links():
                 db.session.add(new_entry)
                 db.session.commit()
         except Exception as e:
-            print(f"ERROR\n{e}")
+            print(f"\n[ERROR]\n{e}\n")
             db.session.rollback()
 
         # formatting data to be sent returned
@@ -175,16 +182,13 @@ def led_on():
 @views.route('/alerts', methods=['GET', 'POST'])
 def alerts():
     st = clock_start()
-    print("DO BACKEND")
+    print("\n[LOG] DO BACKEND\n")
     if request.method == 'POST':
         color = request.form['color']
         fast = request.form['en_fast_flashing']
         flush = request.form['en_flush']
 
-        # TODO: generate transmit.py command
-        et = time.monotonic()
-        dt = float(et - st)
-        print(f"[LOG] completed in {dt} seconds")
+        clock_end(st)
         return redirect(url_for('views.home'))
     clock_end(st)
     return render_template("alerts.html")
@@ -199,7 +203,7 @@ def esp(humididy, temp, heat_index):
     st = clock_start()
 
     print(request.remote_addr)
-    print('received Humidity {}, Temp {}, Heat Index {}'.format(humididy, temp, heat_index))    
+    print('\n[LOG] received Humidity {}, Temp {}, Heat Index {}\n'.format(humididy, temp, heat_index))    
 
     clock_end(st)
     return ''
