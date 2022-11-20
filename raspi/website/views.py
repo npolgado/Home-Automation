@@ -60,6 +60,18 @@ def is_url_ok(url):
     request = requests.get(url)
     return False if pattern in request.text else True
 
+def get_title(url):
+    print(f"\n[LOG]GETTING TITLE FOR {url[17:]}\n")
+    response = requests.get(url[17:])
+    tmp = ''
+    if response.status_code == 200:
+        html = response.text
+        soup = BeautifulSoup(html, 'html.parser')
+        tmp = soup.title.string
+    else:
+        tmp = 'Article'
+    return tmp
+
 @views.route('/', methods=['GET'])
 def home():
     st = clock_start()
@@ -91,7 +103,6 @@ def links_history():
 
 @views.route('/delete/<db_entry_date>', methods=['GET'])
 def delete(db_entry_date):
-    print(db_entry_date)
     query = Daily.query.filter(Daily.date == db_entry_date).first()
 
     if query:
@@ -122,6 +133,7 @@ def links():
             'title': 'mancave',
             'time': timeString,
             'article': last_pull.article,
+            'article_title': get_title(last_pull.article),
             'book': last_pull.book,
             'gift': last_pull.gift,
             'website': last_pull.weblink,
@@ -131,8 +143,10 @@ def links():
     else:
         links = extract_daily(daily_source)
         vt = get_video_name(links[4])
+        at = get_title(links[0])
 
         new_entry = Daily(article=links[0],
+            article_title=at,
             book=links[1],
             gift=links[2],
             weblink=links[3],
@@ -141,8 +155,9 @@ def links():
             date=now
         )
         try:
-            duplicate = Daily.query.filter(Daily.article == new_entry.article, Daily.book == new_entry.book,
-                Daily.gift == new_entry.gift, Daily.weblink == new_entry.weblink, Daily.video == new_entry.video,
+            duplicate = Daily.query.filter(Daily.article == new_entry.article, Daily.article_title == new_entry.article_title,
+                Daily.book == new_entry.book, Daily.gift == new_entry.gift,
+                Daily.weblink == new_entry.weblink, Daily.video == new_entry.video,
                 Daily.video_title == new_entry.video_title
             ).first()
             if duplicate: pass
@@ -158,6 +173,7 @@ def links():
             'title': 'mancave',
             'time': timeString,
             'article': links[0],
+            'article_title': at,
             'book': links[1],
             'gift': links[2],
             'website': links[3],
@@ -202,8 +218,7 @@ def setPinLevel(id, level):
 def esp(humididy, temp, heat_index):
     st = clock_start()
 
-    print(request.remote_addr)
-    print('\n[LOG] received Humidity {}, Temp {}, Heat Index {}\n'.format(humididy, temp, heat_index))    
+    print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
 
     clock_end(st)
     return ''

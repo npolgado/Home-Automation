@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 class Daily(db.Model):
     date = db.Column(db.DateTime(timezone=True), default=func.now(), primary_key=True)
     article = db.Column(db.String(300))
+    article_title = db.Column(db.String(300))
     book = db.Column(db.String(300))
     gift = db.Column(db.String(300))
     weblink = db.Column(db.String(300))
