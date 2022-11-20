@@ -9,7 +9,6 @@
         <th>Book</th>
         <th>Gift</th>
         <th>Weblink</th>
-        <th>Video Title</th>
         <th>Video</th>
         <th>EDIT</th>
       </tr>
@@ -22,8 +21,7 @@
           <td><a href={{ daily.book }}>Book</a></th>
           <td><a href={{ daily.gift }}>Gift</a></th>
           <td><a href={{ daily.weblink }}>Website</a></th>
-          <td>{{ daily.video_title }}</th>
-          <td><a href={{ daily.video }}>Video</a></th>
+          <td><a href={{ daily.video }}>{{ daily.video_title }}</a></th>
           <td>
             <a style="font-weight:bold" href="/delete/{{ daily.date }}">Delete</a>
           </td>
