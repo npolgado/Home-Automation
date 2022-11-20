@@ -44,7 +44,7 @@ unsigned int COLOR_MASK = 0b00011000;
 unsigned int BRIGHTNESS_MASK = 0b00000111;
 
 int LED_TIMEOUT = 250;
-uint32_t last_reading_time;
+long last_reading_time;
 
 void do_blink(int blink_speed, int blink_length)
 {
@@ -81,13 +81,14 @@ boolean echoFind(String keyword)
         if (mySerial.available())
         {
             char ch = mySerial.read();
-            Serial.println(ch);
             if (ch == keyword[current_char])
             {
                 if (++current_char == keyword_length)
                 {
                     return true;
                 }
+            }else{
+                Serial.print(ch);
             }
         }
     }
@@ -97,7 +98,7 @@ boolean echoFind(String keyword)
 
 boolean SerialCommand(String cmd, String ack)
 {
-    mySerial.print(cmd); // Send "AT+" command to module
+    mySerial.println(cmd); // Send "AT+" command to module
     if (!echoFind(ack)){
       return true;       // ack blank or ack found
     }else{
@@ -111,43 +112,37 @@ void update_flask_server(float h, float f, float hif){
     char dataCommand[256];
     char d_prefix[] = "GET /esp/";
     char dash[] = "-";
-    char ending[] = " HTTP/1.1\r\n";
+    char ending[] = " HTTP/1.1";
     char hs[100], fs[100], hifs[100];
     dtostrf(h, 4, 2, hs);
     dtostrf(f, 4, 2, fs);
     dtostrf(hif, 4, 2, hifs);
     sprintf(dataCommand, "%s%s%s%s%s%s%s", d_prefix, hs, dash, fs, dash, hifs, ending);
-
     Serial.println("WILL SEND ");
     Serial.println(dataCommand);
 
     Serial.println("OPENING CONNECTION WITH ");
-    Serial.println("AT+CIPSTART=4,\"TCP\",\"192.168.1.78\",5000\r\n");
-    SerialCommand("AT+CIPSTART=4,\"TCP\",\"192.168.1.141\",5000\r", "OK");
-    int len = strlen(dataCommand)-2;
+    Serial.println("AT+CIPSTART=4,\"TCP\",\"192.168.1.78\",5000");
+    SerialCommand("AT+CIPSTART=4,\"TCP\",\"192.168.1.78\",5000", "OK");
+
+    int len = strlen(dataCommand);
     char lens[5];
     sprintf(lens, "%d", len);
-
     Serial.print("LEN ");
     Serial.println(lens);
 
-    char sendCommand[256];
+    char sendCommand[20];
     char s_prefix[] = "AT+CIPSEND=4,";
-    char s_end[] = "\r\n";
-    sprintf(sendCommand, "%s%s%s", s_prefix, lens, s_end);
+    // char s_end[] = "\r";
+    sprintf(sendCommand, "%s%s%s", s_prefix, lens); //, s_end);
 
     Serial.print("send Command ");
     Serial.println(sendCommand);
     SerialCommand(sendCommand, ">");
 
-    Serial.println(dataCommand);
     mySerial.print(dataCommand);
     delay(100);
-    SerialCommand("AT+CIPCLOSE=4\r\n", "OK");
-}
-
-void recv_base()
-{
+    SerialCommand("AT+CIPCLOSE=4", "OK");
 }
 
 void send_command(int command)
@@ -331,28 +326,29 @@ void setup()
     Serial.begin(9600);
     Serial.println("Initializing Uno IoT");
 
-    mySerial.begin(115200);
-    Serial.println("Initializing Communication");
-    Serial.print("...");
+    // while (!mySerial);
+    // mySerial.begin(115200);
+    // Serial.println("Initializing Communication");
+    // Serial.print("...");
     
-    SerialCommand("AT+RST\r\n", "ready"); // RESTART
-    Serial.print("...");
+    // SerialCommand("AT+RST", "ready"); // RESTART
+    // Serial.print("...");
 
-    SerialCommand("AT+CWMODE=3\r\n", "OK"); // CHMOD STA
-    Serial.print("...");
+    // SerialCommand("AT+CWMODE=3", "OK"); // CHMOD STA
+    // Serial.print("...");
 
-    mySerial.print("AT+CWLAP\r\n"); // INIT STA
-    delay(3000);
-    Serial.print("...");
+    // mySerial.print("AT+CWLAP"); // INIT STA
+    // delay(3000);
+    // Serial.print("...");
 
-    SerialCommand("AT+CIPMUX=1\r\n", "OK"); // ENABLE MULTIPLE CONNECTIONS
-    Serial.print("...");
+    // SerialCommand("AT+CIPMUX=1", "OK"); // ENABLE MULTIPLE CONNECTIONS
+    // Serial.print("...");
 
-    SerialCommand("AT+CWJAP=\"WIFI_NAME\",\"WIFI_PASSWORD\"\r\n", "OK"); // CONNECT TO AP
-    Serial.print("...");
+    // SerialCommand("AT+CWJAP=\"mancave\",\"rudeFaMoxer50\"", "OK"); // CONNECT TO AP
+    // Serial.print("...");
 
-    SerialCommand("AT+CIPSERVER=1,80\r\n", "OK"); // CREATE SERVER
-    Serial.println("...");
+    // SerialCommand("AT+CIPSERVER=1,80", "OK"); // CREATE SERVER
+    // Serial.println("...");
 
     dht.begin();
     pinMode(LED_BUILTIN, OUTPUT); // for blink
@@ -362,45 +358,45 @@ void setup()
 
 void loop()
 {
+    // Serial.println(SerialCommand("AT", "OK"));
+    // delay(2000);
 
-    Serial.println(LED_STATE, BIN);
+    // Serial.println("LED_STATE");
+    // Serial.println(LED_STATE, BIN);
 
-    // READING DHT
-    float h, t, f, hif, hic;
-    h = dht.readHumidity();
-    t = dht.readTemperature();
-    f = dht.readTemperature(true);
-    if (isnan(h) || isnan(t) || isnan(f))
-    {
-        Serial.println(F("Failed to read from DHT sensor!"));
-    }
-    else
-    {
-        hif = dht.computeHeatIndex(f, h);
-        hic = dht.computeHeatIndex(t, h, false);
-    }
+    // // READING DHT
+    // float h, t, f, hif, hic;
+    // h = dht.readHumidity();
+    // t = dht.readTemperature();
+    // f = dht.readTemperature(true);
+    // if (isnan(h) || isnan(t) || isnan(f))
+    // {
+    //     Serial.println(F("Failed to read from DHT sensor!"));
+    // }
+    // else
+    // {
+    //     hif = dht.computeHeatIndex(f, h);
+    //     hic = dht.computeHeatIndex(t, h, false);
+    // }
 
-    // SENDOUT SENSOR DATA TO FLASK
-    uint32_t poll_time = millis();
-//    Serial.println(poll_time);
-//    Serial.println(last_reading_time);
-    
-    if((poll_time - last_reading_time) > SENSOR_TIMEOUT){
-        update_flask_server(h, f, hif);
-        last_reading_time = millis();
-    }
+    // // SENDOUT SENSOR DATA TO FLASK
+    // uint32_t poll_time = millis();
+    // if((poll_time - last_reading_time) > SENSOR_TIMEOUT){
+    //     update_flask_server(h, f, hif);
+    //     last_reading_time = millis();
+    // }
 
-    // Serial.println(data);
-    Serial.print(F(" "));
-    Serial.print(h);
-    Serial.print(F(" "));
-    Serial.print(t);
-    Serial.print(F(" "));
-    Serial.print(f);
-    Serial.print(F(" "));
-    Serial.print(hic);
-    Serial.print(F(" "));
-    Serial.print(hif);
-    Serial.println(F(" "));
-    delay(2000);
+    // // Serial.println(data);
+    // Serial.print(F(" "));
+    // Serial.print(h);
+    // Serial.print(F(" "));
+    // Serial.print(t);
+    // Serial.print(F(" "));
+    // Serial.print(f);
+    // Serial.print(F(" "));
+    // Serial.print(hic);
+    // Serial.print(F(" "));
+    // Serial.print(hif);
+    // Serial.println(F(" "));
+    // delay(2000);
 }

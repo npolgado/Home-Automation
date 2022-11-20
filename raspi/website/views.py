@@ -125,7 +125,7 @@ def links():
     
     timeString = now.strftime("%Y-%m-%d %H:%M")
     try:
-        last_pull = Daily.query.filter(Daily.date >= yesterday).first()
+        last_pull = Daily.query.filter(Daily.date <= yesterday).first()
     except:
         last_pull = None
 
@@ -135,7 +135,7 @@ def links():
             'title': 'mancave',
             'time': timeString,
             'article': last_pull.article,
-            'article_title': get_title(last_pull.article),
+            'article_title': last_pull.article_title,
             'book': last_pull.book,
             'gift': last_pull.gift,
             'website': last_pull.weblink,
