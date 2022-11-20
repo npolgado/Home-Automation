@@ -120,7 +120,9 @@ def delete(db_entry_date):
 def links():
     st = clock_start()
     now = datetime.datetime.now()
-    yesterday = now - datetime.timedelta(days=0.5)
+    yesterday = now - datetime.timedelta(days=1)
+    yesterday = yesterday.replace(hour=11, minute=59, second=59, microsecond=999999)
+    
     timeString = now.strftime("%Y-%m-%d %H:%M")
     try:
         last_pull = Daily.query.filter(Daily.date >= yesterday).first()
