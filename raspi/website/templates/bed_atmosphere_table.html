@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table id="data" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Humidity</th>
+            <th>Temperature (f)</th>
+            <th>Heat index</th>
+            <th>DELETE</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reading in all_readings %}
+        <tr>
+            <td>{{ reading.date }}</th>
+            <td>{{ reading.sensor_reading_humidity }}</th>
+            <td>{{ reading.sensor_reading_temperature }}</th>
+            <td>{{ reading.sensor_reading_heat_index }}</th>
+            <td>
+                <a style="font-weight:bold" href="/delete/Bed_Atmosphere/{{ reading.date }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

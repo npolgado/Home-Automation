@@ -3,7 +3,13 @@ from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
 from .models import Daily, Bed_Atmosphere
 from . import db
-# import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except Exception as e:
+    print(f"\n[ERROR] {e}\n")
+    pass
+
 import json
 import datetime
 import urllib
@@ -93,28 +99,6 @@ def home():
 
     clock_end(st)
     return render_template("home.html", **templateData)
-
-@views.route('/links/history', methods=['GET'])
-def links_history():
-    st = clock_start()
-    pull = Daily.query.all()
-    clock_end(st)
-    return render_template("table.html", all_dailies=pull)
-
-@views.route('/delete/<db_entry_date>', methods=['GET'])
-def delete(db_entry_date):
-    query = Daily.query.filter(Daily.date == db_entry_date).first()
-
-    if query:
-        print(f"\n[LOG] attempting to remove {query}\n")
-        try:
-            db.session.delete(query)
-            db.session.commit()
-        except Exception as e:
-            print(f"\n[ERROR]\n{e}\n")
-            db.session.rollback()
-    else: print(f"\n[LOG] couldn't find query...")
-    return links_history()
 
 @views.route('/links', methods=['GET'])
 def links():
@@ -218,11 +202,69 @@ def setPinLevel(id, level):
 @views.route('/esp/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
 def esp(humididy, temp, heat_index):
     st = clock_start()
+    now = datetime.datetime.now()
+    if Bed_Atmosphere.query.filter(Bed_Atmosphere.date == now).first(): return
 
     print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
+    new_reading = Bed_Atmosphere(date=now,
+        sensor_reading_humidity = humididy,
+        sensor_reading_temperature = temp,
+        sensor_reading_heat_index = heat_index
+    )
+
+    try:
+        db.session.add(new_reading)
+        db.session.commit()
+    except Exception as e:
+        print(f"\n[ERROR]\n{e}\n")
+        db.session.rollback()
 
     clock_end(st)
-    return ''
+    return redirect(url_for('views.esp_history'))
+
+@views.route('/esp/history', methods=['GET'])
+def esp_history():
+    st = clock_start()
+    pull = Bed_Atmosphere.query.all()
+    clock_end(st)
+    return render_template("bed_atmosphere_table.html", all_readings=pull)
+
+@views.route('/delete/Bed_Atmosphere/<db_entry_date>', methods=['GET'])
+def delete_bed_atmosphere(db_entry_date):
+    query = Bed_Atmosphere.query.filter(Bed_Atmosphere.date == db_entry_date).first()
+
+    if query:
+        print(f"\n[LOG] attempting to remove {query}\n")
+        try:
+            db.session.delete(query)
+            db.session.commit()
+        except Exception as e:
+            print(f"\n[ERROR]\n{e}\n")
+            db.session.rollback()
+    else: print(f"\n[LOG] couldn't find query...")
+    return redirect(url_for('views.esp_history'))
+
+@views.route('/links/history', methods=['GET'])
+def links_history():
+    st = clock_start()
+    pull = Daily.query.all()
+    clock_end(st)
+    return render_template("table.html", all_dailies=pull)
+
+@views.route('/delete/Daily/<db_entry_date>', methods=['GET'])
+def delete_daily(db_entry_date):
+    query = Daily.query.filter(Daily.date == db_entry_date).first()
+
+    if query:
+        print(f"\n[LOG] attempting to remove {query}\n")
+        try:
+            db.session.delete(query)
+            db.session.commit()
+        except Exception as e:
+            print(f"\n[ERROR]\n{e}\n")
+            db.session.rollback()
+    else: print(f"\n[LOG] couldn't find query...")
+    return redirect(url_for('views.links_history'))
 
 @views.errorhandler(404)
 def page_not_found(error):
