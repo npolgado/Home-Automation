@@ -7,13 +7,14 @@
 
 #define DHTPIN 2
 #define DHTTYPE DHT11
-#define TIMEOUT 5000 // mS
+#define TIMEOUT 5000                        // in milliseconds
 #define MAX_PAYLOAD_SIZE 100
-#define SENSOR_TIMEOUT 10000    // 30 second timeout for sensor readings
+#define SENSOR_TIMEOUT 2000                 // 2 second timeout for sensor readings
+#define SENSOR_AVERAGING_PERIOD 300000      // average sensor data every minute
 
-SoftwareSerial mySerial(7, 6); // RX, TX
+SoftwareSerial mySerial(7, 6);              // RX, TX
 DHT dht(DHTPIN, DHTTYPE);
-IRsend irsend; // automatically on D3 pin
+IRsend irsend;                              // automatically on D3 pin
 
 unsigned int LED_IO = 0x40;
 unsigned int LED_FADE = 0x7;
@@ -45,6 +46,14 @@ unsigned int BRIGHTNESS_MASK = 0b00000111;
 
 int LED_TIMEOUT = 250;
 long last_reading_time;
+long last_averaging_time;
+long poll_time;
+int humidity_sum = 0;
+int humidity_count = 0;
+int temperature_sum = 0;
+int temperature_count = 0;
+int heat_index_sum = 0;
+int heat_index_count = 0;
 
 void do_blink(int blink_speed, int blink_length)
 {
@@ -320,6 +329,34 @@ void SET_LED_BRIGHTNESS(unsigned int brightness)
     }
 }
 
+void init_esp8266(){
+    // RESTART
+    SerialCommand("AT+RST", "ready");
+    Serial.print("...");
+
+    // CHMOD STA
+    SerialCommand("AT+CWMODE=3", "OK"); 
+    Serial.print("...");
+
+    // INIT STA
+    mySerial.print("AT+CWLAP"); 
+    delay(3000);
+    Serial.print("...");
+
+    // ENABLE MULTIPLE CONNECTIONS
+    SerialCommand("AT+CIPMUX=1", "OK"); 
+    Serial.print("...");
+
+    // CONNECT TO WIRELESS NETWORK
+    SerialCommand("AT+CWJAP=\"WIFI_NAME\",\"WIFI_PASSWORD\"", "OK");
+    Serial.print("...");
+
+    // CREATE SERVER TO RECIEVE MESSAGES
+    SerialCommand("AT+CIPSERVER=1,80", "OK"); 
+    Serial.println("...");
+    return;
+}
+
 void setup()
 {
     while (!Serial);
@@ -330,73 +367,63 @@ void setup()
     // mySerial.begin(115200);
     // Serial.println("Initializing Communication");
     // Serial.print("...");
-    
-    // SerialCommand("AT+RST", "ready"); // RESTART
-    // Serial.print("...");
 
-    // SerialCommand("AT+CWMODE=3", "OK"); // CHMOD STA
-    // Serial.print("...");
-
-    // mySerial.print("AT+CWLAP"); // INIT STA
-    // delay(3000);
-    // Serial.print("...");
-
-    // SerialCommand("AT+CIPMUX=1", "OK"); // ENABLE MULTIPLE CONNECTIONS
-    // Serial.print("...");
-
-    // SerialCommand("AT+CWJAP=\"mancave\",\"rudeFaMoxer50\"", "OK"); // CONNECT TO AP
-    // Serial.print("...");
-
-    // SerialCommand("AT+CIPSERVER=1,80", "OK"); // CREATE SERVER
-    // Serial.println("...");
+    init_esp8266();
 
     dht.begin();
-    pinMode(LED_BUILTIN, OUTPUT); // for blink
+    pinMode(LED_BUILTIN, OUTPUT);
     IrSender.begin(3, ENABLE_LED_FEEDBACK);
     last_reading_time = millis();
+    last_averaging_time = millis();
 }
 
 void loop()
 {
-    // Serial.println(SerialCommand("AT", "OK"));
-    // delay(2000);
+    Serial.println("LED_STATE");
+    Serial.println(LED_STATE, BIN);
 
-    // Serial.println("LED_STATE");
-    // Serial.println(LED_STATE, BIN);
+    // SENDOUT SENSOR DATA COLLECTION
+    poll_time = millis();
+    if((poll_time - last_reading_time) > SENSOR_TIMEOUT){
+        // READING DHT
+        float h, t, f, hif, hic;
+        h = dht.readHumidity();
+        t = dht.readTemperature();
+        f = dht.readTemperature(true);
+        if (isnan(h) || isnan(t) || isnan(f))
+        {
+            Serial.println(F("Failed to read from DHT sensor!"));
+        }
+        else
+        {
+            hif = dht.computeHeatIndex(f, h);
+            hic = dht.computeHeatIndex(t, h, false);
+        }
+        humidity_sum += h;
+        humidity_count++;
+        
+        temperature_sum += f;
+        temperature_count++;
 
-    // // READING DHT
-    // float h, t, f, hif, hic;
-    // h = dht.readHumidity();
-    // t = dht.readTemperature();
-    // f = dht.readTemperature(true);
-    // if (isnan(h) || isnan(t) || isnan(f))
-    // {
-    //     Serial.println(F("Failed to read from DHT sensor!"));
-    // }
-    // else
-    // {
-    //     hif = dht.computeHeatIndex(f, h);
-    //     hic = dht.computeHeatIndex(t, h, false);
-    // }
+        heat_index_sum += hif;
+        heat_index_count++;
 
-    // // SENDOUT SENSOR DATA TO FLASK
-    // uint32_t poll_time = millis();
-    // if((poll_time - last_reading_time) > SENSOR_TIMEOUT){
-    //     update_flask_server(h, f, hif);
-    //     last_reading_time = millis();
-    // }
+        last_reading_time = millis();
+    }
 
-    // // Serial.println(data);
-    // Serial.print(F(" "));
-    // Serial.print(h);
-    // Serial.print(F(" "));
-    // Serial.print(t);
-    // Serial.print(F(" "));
-    // Serial.print(f);
-    // Serial.print(F(" "));
-    // Serial.print(hic);
-    // Serial.print(F(" "));
-    // Serial.print(hif);
-    // Serial.println(F(" "));
-    // delay(2000);
+    // SENDOUT SENSOR DATA TO FLASK
+    poll_time = millis();
+    if((poll_time - last_averaging_time) > SENSOR_AVERAGING_PERIOD){
+        float humidity = (float) (humidity_sum / humidity_count);
+        float temperature = (float) (temperature_sum / temperature_count);
+        float heat_index = (float) (heat_index_sum / heat_index_count);
+        update_flask_server(humidity, temperature, heat_index);
+        last_averaging_time = millis();
+    }
+
+    // Listen for new message from Flask
+
+    // If the message is an 8 bit binary... process change
+
+    // If its not, ingore
 }

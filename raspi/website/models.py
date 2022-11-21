@@ -13,6 +13,13 @@ class Daily(db.Model):
     video = db.Column(db.String(300))
     video_title = db.Column(db.String(300))
 
+# DHT11 Temp / Humidity Sensor Readying from Bedroom
+class Bed_Atmosphere(db.Model):
+    date = db.Column(db.DateTime(timezone=True), default=func.utcnow(), primary_key=True)
+    sensor_reading_humidity = db.Column(db.Float)
+    sensor_reading_temperature = db.Column(db.Float)
+    sensor_reading_heat_index = db.Column(db.Float)
+
 # GPT3 SUGGESTION DATABASE MODELS
 # # averages from IOT sensors around apartment, for trend analysis
 # class Home(db.Model):

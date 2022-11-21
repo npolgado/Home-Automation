@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
-from .models import Daily
+from .models import Daily, Bed_Atmosphere
 from . import db
 # import RPi.GPIO as GPIO
 import json
