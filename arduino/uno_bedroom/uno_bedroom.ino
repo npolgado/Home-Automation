@@ -119,7 +119,7 @@ boolean SerialCommand(String cmd, String ack)
 
 void update_flask_server(float h, float f, float hif){
     char dataCommand[256];
-    char d_prefix[] = "GET /esp/";
+    char d_prefix[] = "GET /bed-DHT11/";
     char dash[] = "-";
     char ending[] = " HTTP/1.1";
     char hs[100], fs[100], hifs[100];

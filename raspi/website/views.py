@@ -199,11 +199,11 @@ def setPinLevel(id, level):
     GPIO.output(int(id), int(level))
     return "OK"
 
-@views.route('/esp/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
-def esp(humididy, temp, heat_index):
+@views.route('/bed-DHT11/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
+def bed_DHT11(humididy, temp, heat_index):
     st = clock_start()
     now = datetime.datetime.now()
-    if Bed_Atmosphere.query.filter(Bed_Atmosphere.date == now).first(): return
+    if Bed_Atmosphere.query.filter(Bed_Atmosphere.date == now).first(): return redirect(url_for('views.bed_DHT11_history'))
 
     print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
     new_reading = Bed_Atmosphere(date=now,
@@ -220,10 +220,10 @@ def esp(humididy, temp, heat_index):
         db.session.rollback()
 
     clock_end(st)
-    return redirect(url_for('views.esp_history'))
+    return redirect(url_for('views.bed_DHT11_history'))
 
-@views.route('/esp/history', methods=['GET'])
-def esp_history():
+@views.route('/bed-DHT11/history', methods=['GET'])
+def bed_DHT11_history():
     st = clock_start()
     pull = Bed_Atmosphere.query.all()
     clock_end(st)
@@ -242,7 +242,7 @@ def delete_bed_atmosphere(db_entry_date):
             print(f"\n[ERROR]\n{e}\n")
             db.session.rollback()
     else: print(f"\n[LOG] couldn't find query...")
-    return redirect(url_for('views.esp_history'))
+    return redirect(url_for('views.bed_DHT11_history'))
 
 @views.route('/links/history', methods=['GET'])
 def links_history():
