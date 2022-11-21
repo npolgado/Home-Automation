@@ -5,7 +5,9 @@
 ## How To Install:
 
 `git clone https://github.com/npolgado/Home-Automation.git`
+
 `cd Home-Automation/`
+
 `python3 -m pip install -r requirements.txt`
 
 ## Quickstart:
@@ -73,9 +75,15 @@ Using arduino uno's we can crete IoT wireless nodes which will communicate with 
 ## References
 
 [Audio/Visual Lip Reading CNN](https://github.com/astorfi/lip-reading-deeplearning)
+
 [Neural Random Forests](https://arxiv.org/pdf/1604.07143.pdf)
+
 [Network Architecture Guidance](https://stats.stackexchange.com/questions/181/how-to-choose-the-number-of-hidden-layers-and-nodes-in-a-feedforward-neural-netw)
+
 [NRF24LO1+ Network Guidance (ARDUINO)](https://youtu.be/xb7psLhKTMA)
+
 [NRF24L01+ with the Raspberry Pi](https://youtu.be/6KJGsmSZnzg)
+
 [NRF24L01+ Long Range Video Feed (PI)](https://youtu.be/9N1uRcvZzq4)
+
 [Raspberry Pi HomeAssistant / Docker / Plex Setup](https://youtu.be/72D3MvPk3Xs)
