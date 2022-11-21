@@ -367,8 +367,7 @@ void setup()
     // mySerial.begin(115200);
     // Serial.println("Initializing Communication");
     // Serial.print("...");
-
-    init_esp8266();
+    // init_esp8266();
 
     dht.begin();
     pinMode(LED_BUILTIN, OUTPUT);
@@ -421,9 +420,9 @@ void loop()
         last_averaging_time = millis();
     }
 
-    // Listen for new message from Flask
-
-    // If the message is an 8 bit binary... process change
-
-    // If its not, ingore
+    // // Listen for new message from Flask
+    // val = 
+    // // If the message is an 8 bit binary... process change
+    // process_change((uint8_t) val);
+    // // If its not, ingore
 }

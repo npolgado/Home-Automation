@@ -196,7 +196,11 @@ def alerts():
 
 @views.route('/gpio/<string:id>/<string:level>')
 def setPinLevel(id, level):
-    GPIO.output(int(id), int(level))
+    try:
+        GPIO.output(int(id), int(level))
+    except Exception as e:
+        print(f"\n[ERROR] {e}\n")
+        return "ERROR"
     return "OK"
 
 @views.route('/bed-DHT11/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
