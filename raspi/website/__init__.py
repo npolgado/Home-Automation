@@ -6,7 +6,6 @@ from os import path
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
-
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
@@ -17,7 +16,7 @@ def create_app():
     from .views import views
     app.register_blueprint(views, url_prefix='/')
 
-    from .models import Daily, Bed_Atmosphere
+    from .models import Daily, Bed
     create_database(app)
 
     return app, socket

@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
-from .models import Daily, Bed_Atmosphere
+from .models import Daily, Bed
 from . import db
 
 try:
@@ -223,20 +223,22 @@ def setPinLevel(id, level):
         return "ERROR"
     return "OK"
 
-@views.route('/bed-DHT11/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
-def bed_DHT11(humididy, temp, heat_index):
+@views.route('/<area>/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
+def data_collect(area, humididy, temp, heat_index):
     st = clock_start()
     now = datetime.datetime.now()
-    if Bed_Atmosphere.query.filter(Bed_Atmosphere.date == now).first(): return redirect(url_for('views.bed_DHT11_history'))
+    if Bed.query.filter(Bed.date == now).first(): return redirect(url_for('views.sensor_history'))
 
     print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
-    new_reading = Bed_Atmosphere(date=now,
-        sensor_reading_humidity = humididy,
-        sensor_reading_temperature = temp,
-        sensor_reading_heat_index = heat_index
+    new_reading = Bed(date=now,
+        sensor_humidity = humididy,
+        sensor_temperature = temp,
+        sensor_heat_index = heat_index,
+        sensor_led_state = 0
     )
 
     try:
+        print("\n[LOG] adding to db\n")
         db.session.add(new_reading)
         db.session.commit()
     except Exception as e:
@@ -244,43 +246,46 @@ def bed_DHT11(humididy, temp, heat_index):
         db.session.rollback()
 
     clock_end(st)
-    return redirect(url_for('views.bed_DHT11_history'))
+    return redirect(url_for('views.sensor_history'))
 
-@views.route('/bed-DHT11/history', methods=['GET'])
-def bed_DHT11_history():
-    st = clock_start()
-    pull = Bed_Atmosphere.query.all()
-    clock_end(st)
-    return render_template("bed_atmosphere_table.html", all_readings=pull)
-
-@views.route('/delete/Bed_Atmosphere/<db_entry_date>', methods=['GET'])
-def delete_bed_atmosphere(db_entry_date):
-    query = Bed_Atmosphere.query.filter(Bed_Atmosphere.date == db_entry_date).first()
-
-    if query:
-        print(f"\n[LOG] attempting to remove {query}\n")
-        try:
-            db.session.delete(query)
-            db.session.commit()
-        except Exception as e:
-            print(f"\n[ERROR]\n{e}\n")
-            db.session.rollback()
-    else: print(f"\n[LOG] couldn't find query...")
-    return redirect(url_for('views.bed_DHT11_history'))
-
-@views.route('/links/history', methods=['GET'])
+@views.route('/links-history', methods=['GET'])
 def links_history():
     st = clock_start()
     pull = Daily.query.all()
     clock_end(st)
-    return render_template("table.html", all_dailies=pull)
+    return render_template("links-history.html", all_dailies=pull)
 
-@views.route('/delete/Daily/<db_entry_date>', methods=['GET'])
-def delete_daily(db_entry_date):
-    query = Daily.query.filter(Daily.date == db_entry_date).first()
+@views.route('/sensor-history', methods=['GET'])    # TODO: Change this to pull all sensor data
+def sensor_history():
+    st = clock_start()
+    pull = Bed.query.all()
+    clock_end(st)
+    return render_template("bed.html", all_readings=pull)
+
+@views.route('/delete/<string:area>/<db_entry_date>', methods=['GET'])
+def db_delete(area, db_entry_date):
+    print(f"\n[LOG] attempting to remove db entry from \n{area} @ {db_entry_date}\n")
+    redirect_is = 'views.sensor_history'
+
+    if area == "Bed":
+        query = Bed.query.filter(Bed.date == db_entry_date).first()
+
+    elif area == "Bath":
+        print("found Bath delete")
+        # query = Bed.query.filter(Bed.date == db_entry_date).first()
+
+    elif area == "Beyond":
+        print("found Beyond delete")
+        # query = Bed.query.filter(Bed.date == db_entry_date).first()
+
+    elif area == "Daily":
+        print("found Daily delete")
+        query = Daily.query.filter(Daily.date == db_entry_date).first()
+        redirect_is = 'views.links_history'
+    else: return
 
     if query:
-        print(f"\n[LOG] attempting to remove {query}\n")
+        print(f"\n[LOG] removing {query}...\n")
         try:
             db.session.delete(query)
             db.session.commit()
@@ -288,7 +293,8 @@ def delete_daily(db_entry_date):
             print(f"\n[ERROR]\n{e}\n")
             db.session.rollback()
     else: print(f"\n[LOG] couldn't find query...")
-    return redirect(url_for('views.links_history'))
+
+    return redirect(url_for(redirect_is))
 
 @views.errorhandler(404)
 def page_not_found(error):

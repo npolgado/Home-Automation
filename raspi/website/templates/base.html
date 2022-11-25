@@ -9,75 +9,7 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
     crossorigin="anonymous" />
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.css" />
-
-  <style>
-    html,
-    .nav {
-      border: 1px solid #ffffff00;
-      text-align: center;
-    }
-
-    .nav li {
-      font-size: large;
-      display: inline;
-    }
-
-    .nav a {
-      display: inline-block;
-      padding: 50px;
-    }
-
-    .nav a:hover {
-      text-decoration: none;
-    }
-
-    div.container {
-      width: 100%;
-      text-align: center;
-    }
-
-    table {
-      margin: 0 auto;
-      /* or margin: 0 auto 0 auto */
-    }
-
-    td,
-    th {
-      text-align: center;
-    }
-
-    .fa-trash {
-      color: #ff0000;
-    }
-
-    .fa-edit {
-      color: #00ff00;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    /* Zebra striping */
-    tr:nth-of-type(odd) {
-      background: #eee;
-    }
-
-    th {
-      background: #333;
-      color: white;
-      font-weight: bold;
-    }
-
-    td,
-    th {
-      padding: 6px;
-      border: 1px solid #ccc;
-      text-align: left;
-    }
-  </style>
-
+  <link rel="stylesheet" href="../static/css/style.css">
   <title>{% block title %}Home{% endblock %}</title>
 </head>
 
@@ -90,8 +22,8 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" id="home" href="/">Home</a>
         <a class="nav-item nav-link" id="links" href="/links">Dailys</a>
-        <a class="nav-item nav-link" id="links-history" href="/links/history">Archive</a>
-        <a class="nav-item nav-link" id="bed-DHT11-history" href="/bed-DHT11/history">Atmosphere</a>
+        <a class="nav-item nav-link" id="links-history" href="/links-history">Archive</a>
+        <a class="nav-item nav-link" id="sensor-history" href="/sensor-history">Atmosphere</a>
         <a class="nav-item nav-link" id="led_on" href="/led_on">Lights</a>
         <a class="nav-item nav-link" id="alerts" href="/alerts">Alerts</a>
       </div>
@@ -126,6 +58,7 @@
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
     integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
     crossorigin="anonymous"></script>
+  <script src={% block js_src %}"../static/js/base.js"{% endblock %}></script>
 </body>
 
 </html>
