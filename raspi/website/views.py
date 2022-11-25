@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
-from .models import Daily, Bed
+from .models import Daily, Bed, Bath, Beyond, Event
 from . import db
 
 try:
@@ -123,10 +123,14 @@ def home():
 @views.route('/links', methods=['GET'])
 def links():
     st = clock_start()
+
     now = datetime.datetime.now()
     yesterday = now - datetime.timedelta(days=1)
     yesterday = yesterday.replace(hour=23, minute=59, second=59, microsecond=999999)
+
     timeString = now.strftime("%Y-%m-%d %H:%M")
+
+    # find a db entry from same time as current page
     try:
         last_pull = Daily.query.filter(Daily.date >= yesterday).first()
     except:
@@ -160,9 +164,12 @@ def links():
             date=now
         )
         try:
-            duplicate = Daily.query.filter(Daily.article == new_entry.article, Daily.article_title == new_entry.article_title,
-                Daily.book == new_entry.book, Daily.gift == new_entry.gift,
-                Daily.weblink == new_entry.weblink, Daily.video == new_entry.video,
+            duplicate = Daily.query.filter(Daily.article == new_entry.article,
+                Daily.article_title == new_entry.article_title,
+                Daily.book == new_entry.book, 
+                Daily.gift == new_entry.gift,
+                Daily.weblink == new_entry.weblink,
+                Daily.video == new_entry.video,
                 Daily.video_title == new_entry.video_title
             ).first()
             if duplicate: pass
@@ -216,25 +223,29 @@ def alerts():
 
 @views.route('/gpio/<string:id>/<string:level>')
 def setPinLevel(id, level):
+    st = clock_start()
     try:
         GPIO.output(int(id), int(level))
     except Exception as e:
         print(f"\n[ERROR] {e}\n")
+        clock_end(st)
         return "ERROR"
+
+    clock_end(st)
     return "OK"
 
-@views.route('/<area>/<humididy>-<temp>-<heat_index>', methods=['GET', 'POST'])
-def data_collect(area, humididy, temp, heat_index):
+@views.route('/Bed/<humididy>-<temp>-<heat_index>-<led_state>', methods=['GET', 'POST'])
+def bed_collect(area, humididy, temp, heat_index, led_state):
     st = clock_start()
     now = datetime.datetime.now()
-    if Bed.query.filter(Bed.date == now).first(): return redirect(url_for('views.sensor_history'))
 
     print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
+    
     new_reading = Bed(date=now,
-        sensor_humidity = humididy,
-        sensor_temperature = temp,
-        sensor_heat_index = heat_index,
-        sensor_led_state = 0
+        sensor_humidity = float(humididy),
+        sensor_temperature = float(temp),
+        sensor_heat_index = float(heat_index),
+        sensor_led_state = int(led_state)
     )
 
     try:
@@ -264,25 +275,22 @@ def sensor_history():
 
 @views.route('/delete/<string:area>/<db_entry_date>', methods=['GET'])
 def db_delete(area, db_entry_date):
+    st = clock_start()
     print(f"\n[LOG] attempting to remove db entry from \n{area} @ {db_entry_date}\n")
     redirect_is = 'views.sensor_history'
 
     if area == "Bed":
         query = Bed.query.filter(Bed.date == db_entry_date).first()
-
     elif area == "Bath":
-        print("found Bath delete")
-        # query = Bed.query.filter(Bed.date == db_entry_date).first()
-
+        query = Bath.query.filter(Bath.date == db_entry_date).first()
     elif area == "Beyond":
-        print("found Beyond delete")
-        # query = Bed.query.filter(Bed.date == db_entry_date).first()
-
+        query = Beyond.query.filter(Beyond.date == db_entry_date).first()
     elif area == "Daily":
-        print("found Daily delete")
         query = Daily.query.filter(Daily.date == db_entry_date).first()
         redirect_is = 'views.links_history'
-    else: return
+    else:
+        clock_end(st) 
+        return redirect(url_for('views.home'))
 
     if query:
         print(f"\n[LOG] removing {query}...\n")
@@ -294,6 +302,7 @@ def db_delete(area, db_entry_date):
             db.session.rollback()
     else: print(f"\n[LOG] couldn't find query...")
 
+    clock_end(st)
     return redirect(url_for(redirect_is))
 
 @views.errorhandler(404)
