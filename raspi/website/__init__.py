@@ -16,7 +16,7 @@ def create_app():
     from .views import views
     app.register_blueprint(views, url_prefix='/')
 
-    from .models import Daily, Bed, Bath, Beyond, Event
+    from .models import Daily, Home, Event
     create_database(app)
 
     return app, socket

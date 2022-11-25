@@ -14,31 +14,18 @@ class Daily(db.Model):
     video = db.Column(db.String(300))
     video_title = db.Column(db.String(300))
 
-# all data coming from the bedroom
-class Bed(db.Model):
+# data coming from the home nodes
+class Home(db.Model):
     date = db.Column(db.DateTime(timezone=True), default=func.now(), primary_key=True)
+    type = db.Column(db.String(300))
     sensor_humidity = db.Column(db.Float)
     sensor_temperature = db.Column(db.Float)
     sensor_heat_index = db.Column(db.Float)
-    sensor_led_state = db.Column(db.INT)
-
-# data coming from the bathroom
-class Bath(db.Model):
-    date = db.Column(db.DateTime(timezone=True), default=func.now(), primary_key=True)
-    sensor_humidity = db.Column(db.Float)
-    sensor_temperature = db.Column(db.Float)
-    sensor_heat_index = db.Column(db.Float)
+    sensor_led_state = db.Column(db.String(300))
     sensor_volume = db.Column(db.Integer)
-
-# data coming from the main living room!
-class Beyond(db.Model):
-    date = db.Column(db.DateTime(timezone=True), default=func.now(), primary_key=True)
-    sensor_humidity = db.Column(db.Float)
-    sensor_temperature = db.Column(db.Float)
-    sensor_heat_index = db.Column(db.Float)
-    sensor_volume = db.Column(db.Integer)
-    sensor_motion = db.Column(db.Integer)
     sensor_motion_detected = db.Column(db.Boolean)
+    node_mode = db.Column(db.Integer)
+    node_status = db.Column(db.Integer)
 
 # db type for the event of 
 class Event(db.Model):

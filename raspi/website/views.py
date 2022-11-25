@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound
 from flask import Blueprint, render_template, request, flash, jsonify
 from flask import abort, redirect, url_for
-from .models import Daily, Bed, Bath, Beyond, Event
+from .models import Daily, Home, Event
 from . import db
 
 try:
@@ -31,6 +31,23 @@ daily_source = "https://fuckinghomepage.com/"
 uno_bedroom_ip = "192.168.1.229"
 
 pattern = '"playabilityStatus":{"status":"ERROR","reason":"Video unavailable"'
+
+NODE_MODE = {
+    0: "Normal",
+    1: "Low Power",
+    2: "Off",    
+}
+
+NODE_STATUS = {
+    0: "ACTIVE",
+    1: "ERROR",
+    2: "STANDBY",
+    3: "DHT_ERROR",
+    4: "MOTION_ERROR",
+    5: "MICROPHONE_ERROR",
+    6: "IR_ERROR"
+}
+
 
 def clock_start():
     return time.monotonic()
@@ -234,18 +251,48 @@ def setPinLevel(id, level):
     clock_end(st)
     return "OK"
 
-@views.route('/Bed/<humididy>-<temp>-<heat_index>-<led_state>', methods=['GET', 'POST'])
-def bed_collect(area, humididy, temp, heat_index, led_state):
+@views.route('/links-history', methods=['GET'])
+def links_history():
+    st = clock_start()
+    pull = Daily.query.all()
+    clock_end(st)
+    return render_template("links-history.html", all_dailies=pull)
+
+@views.route('/sensor-history', methods=['GET'])
+def sensor_history():
+    st = clock_start() 
+    pull = Home.query.all()
+    clock_end(st)
+    print(pull)
+    return render_template("sensor-history.html", all_readings=pull)
+
+@views.route('/log/<string:area>/<data_0>-<data_1>-<data_2>-<data_3>-<data_4>-<data_5>-<data_6>-<data_7>', methods=['GET', 'POST'])
+def db_collect(area, data_0, data_1, data_2, data_3, data_4, data_5, data_6, data_7):
     st = clock_start()
     now = datetime.datetime.now()
 
-    print('\n[LOG] received from {}\nHumidity {}, Temp {}, Heat Index {}\n'.format(request.remote_addr, humididy, temp, heat_index))    
+    print('\n[LOG] received from {}\n{} - {} - {} - {} - {} - {} - {} - {}\n'.format(request.remote_addr,
+        data_0, data_1, data_2, data_3, data_4, data_5, data_6, data_7
+        )
+    )
+    try:
+        str_mode = NODE_MODE[int(data_6)]
+        str_status = NODE_STATUS[int(data_7)]
+    except Exception as e:
+        print(f"\n[ERROR] couldn't find node status or mode...\n")
+        str_mode = int(data_6)
+        str_status = int(data_7)
     
-    new_reading = Bed(date=now,
-        sensor_humidity = float(humididy),
-        sensor_temperature = float(temp),
-        sensor_heat_index = float(heat_index),
-        sensor_led_state = int(led_state)
+    new_reading = Home(date=now,
+        type = area,
+        sensor_humidity = float(data_0),
+        sensor_temperature = float(data_1),
+        sensor_heat_index = float(data_2),
+        sensor_led_state = format(int(data_3), 'b'),
+        sensor_volume = float(data_4),
+        sensor_motion_detected = bool(int(data_5)),
+        node_mode = str_mode,
+        node_status = str_status,
     )
 
     try:
@@ -259,32 +306,14 @@ def bed_collect(area, humididy, temp, heat_index, led_state):
     clock_end(st)
     return redirect(url_for('views.sensor_history'))
 
-@views.route('/links-history', methods=['GET'])
-def links_history():
-    st = clock_start()
-    pull = Daily.query.all()
-    clock_end(st)
-    return render_template("links-history.html", all_dailies=pull)
-
-@views.route('/sensor-history', methods=['GET'])    # TODO: Change this to pull all sensor data
-def sensor_history():
-    st = clock_start()
-    pull = Bed.query.all()
-    clock_end(st)
-    return render_template("bed.html", all_readings=pull)
-
 @views.route('/delete/<string:area>/<db_entry_date>', methods=['GET'])
 def db_delete(area, db_entry_date):
     st = clock_start()
     print(f"\n[LOG] attempting to remove db entry from \n{area} @ {db_entry_date}\n")
     redirect_is = 'views.sensor_history'
-
-    if area == "Bed":
-        query = Bed.query.filter(Bed.date == db_entry_date).first()
-    elif area == "Bath":
-        query = Bath.query.filter(Bath.date == db_entry_date).first()
-    elif area == "Beyond":
-        query = Beyond.query.filter(Beyond.date == db_entry_date).first()
+    
+    if area == "Home":
+        query = Home.query.filter(Home.date == db_entry_date).first()
     elif area == "Daily":
         query = Daily.query.filter(Daily.date == db_entry_date).first()
         redirect_is = 'views.links_history'
