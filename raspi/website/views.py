@@ -13,9 +13,10 @@ except Exception as e:
 import json
 import datetime
 import urllib
-from bs4 import BeautifulSoup
 import urllib.request
-import os
+from bs4 import BeautifulSoup
+import os, time, sys, math, re
+import subprocess
 import datetime
 import platform
 import requests
@@ -36,6 +37,25 @@ def clock_start():
 
 def clock_end(st):
     print(f"\n[LOG] Completed Backend in {float(time.monotonic() - st)*1000} ms\n")
+
+def ping_target(host):
+    target_os = str(platform.platform())
+    if bool(re.match("(?i)windows", target_os)):
+        os_ping_count = '-n'
+    else: os_ping_count = '-c'
+
+    ping_out = subprocess.Popen(
+        ['ping', os_ping_count, '1', str(host)],
+        stdout = subprocess.PIPE,
+        stderr = subprocess.STDOUT
+    )
+
+    stdout, stderr = ping_out.communicate()
+
+    if ping_out.returncode == 0:
+        return True
+    else:
+        return False
 
 def extract_daily(source):
     LINKS = []
