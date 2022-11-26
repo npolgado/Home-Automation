@@ -80,10 +80,8 @@ Using arduino uno's we can crete IoT wireless nodes which will communicate with 
 
 [Network Architecture Guidance](https://stats.stackexchange.com/questions/181/how-to-choose-the-number-of-hidden-layers-and-nodes-in-a-feedforward-neural-netw)
 
-[NRF24LO1+ Network Guidance (ARDUINO)](https://youtu.be/xb7psLhKTMA)
+[NRF24LO1+ COMM FROM RASPI TO ARDUINO part 1](https://youtu.be/_68f-yp63ds)
 
-[NRF24L01+ with the Raspberry Pi](https://youtu.be/6KJGsmSZnzg)
-
-[NRF24L01+ Long Range Video Feed (PI)](https://youtu.be/9N1uRcvZzq4)
+[NRF24LO1+ COMM FROM RASPI TO ARDUINO part 2](https://youtu.be/okdY4fIvysA)
 
 [Raspberry Pi HomeAssistant / Docker / Plex Setup](https://youtu.be/72D3MvPk3Xs)
