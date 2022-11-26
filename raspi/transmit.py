@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time, sys
 import spidev
-from raspi.website.lib_nrf24 import NRF24
+from .lib_nrf24 import NRF24
 
 radio = NRF24(GPIO, spidev.SpiDev())
 pipes = [[0xE0, 0xE0, 0xF1, 0xF1, 0xE0], [0xF1, 0xF1, 0xF0, 0xF0, 0xE0]]
