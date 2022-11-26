@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 #
 
@@ -21,6 +22,8 @@
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU General Public License for more details.
 #
+
+
 import sys
 import time
 
@@ -362,12 +365,14 @@ class NRF24:
         print ("CRC Length\t = %s" % NRF24.crclength_e_str_P[self.getCRCLength()])
         print ("PA Power\t = %s" % NRF24.pa_dbm_e_str_P[self.getPALevel()])
 
-    def begin(self, csn_pin, ce_pin=0):   # csn & ce are RF24 terminology. csn = SPI's CE!
+    def begin(self, csn_pin, ce_pin=0, max_speed_hz=None):   # csn & ce are RF24 terminology. csn = SPI's CE!
         # Initialize SPI bus..
         # ce_pin is for the rx=listen or tx=trigger pin on RF24 (they call that ce !!!)
         # CE optional (at least in some circumstances, eg fixed PTX PRX roles, no powerdown)
         # CE seems to hold itself as (sufficiently) HIGH, but tie HIGH is safer!
         self.spidev.open(0, csn_pin)
+        if max_speed_hz is not None:
+            self.spidev.max_speed_hz = max_speed_hz
         self.ce_pin = ce_pin
 
         if ce_pin:
