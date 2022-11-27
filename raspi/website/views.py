@@ -32,10 +32,6 @@ uno_bedroom_ip = "192.168.1.229"
 
 pattern = '"playabilityStatus":{"status":"ERROR","reason":"Video unavailable"'
 
-GRAPH_TYPES = ['bar',
-    'line'
-]
-
 AREAS = ['Bed',
     'Bath',
     'Beyond',
@@ -355,6 +351,7 @@ def db_delete(area, db_entry_date):
 
 @views.route("/chart", methods=['GET', 'POST'])
 def chart():
+    global DATATYPES, AREAS
 
     if request.method == 'POST':
         area = str(request.form.get("area"))
@@ -376,26 +373,35 @@ def chart():
             'labels': labels,
             'data': data,
             'areas': AREAS,
-            'datatypes': DATATYPES,
-            'graphtypes': GRAPH_TYPES
+            'datatypes': DATATYPES
         } 
 
         return render_template("sensor-chart.html", **templateData)
+
     try:
-        templateData = {
-            'labels': request.form.get("labels"),
-            'data': request.form.get("labels"),
-            'areas': AREAS,
-            'datatypes': DATATYPES,
-            'graphtypes': GRAPH_TYPES
-        }
+        t_labels = request.form.get("labels")
+        t_data = request.form.get("data")
+        if t_labels and t_data:
+            templateData = {
+                'labels': t_labels,
+                'data': t_data,
+                'areas': AREAS,
+                'datatypes': DATATYPES
+            }
+        else:
+            templateData = {
+                'labels': [0,1],
+                'data': [1,1],
+                'areas': AREAS,
+                'datatypes': DATATYPES
+            }
     except Exception as e:
-        print(f"[ERROR] {e}\n")
         templateData = {
+            'labels': [0,1],
+            'data': [1,1],
             'areas': AREAS,
-            'datatypes': DATATYPES,
-            'graphtypes': GRAPH_TYPES
-        }
+            'datatypes': DATATYPES
+        } 
 
     return render_template("sensor-chart.html", **templateData)
 

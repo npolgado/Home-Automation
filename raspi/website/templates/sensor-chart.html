@@ -3,13 +3,13 @@
 <br>
 <br>
 <form action="/chart" method="POST">
-    <label for="area">Language</label>
+    <label for="area">Area</label>
     <select name="area" id="area">
         {% for name_area in areas %}
         <option value={{ name_area }}>{{ name_area }}</option>
         {% endfor %}
     </select>
-    <label for="datatype">Data Type</label>
+    <label for="datatype">Data</label>
     <select name="datatype" id="datatype">
         {% for name_datatype in datatypes %}
         <option value={{ name_datatype }}>{{ name_datatype }}</option>
