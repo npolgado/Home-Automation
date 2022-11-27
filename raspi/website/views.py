@@ -32,6 +32,26 @@ uno_bedroom_ip = "192.168.1.229"
 
 pattern = '"playabilityStatus":{"status":"ERROR","reason":"Video unavailable"'
 
+GRAPH_TYPES = ['bar',
+    'line'
+]
+
+AREAS = ['Bed',
+    'Bath',
+    'Beyond',
+    'PC'
+]
+
+DATATYPES = ['sensor_humidity',
+    'sensor_temperature',
+    'sensor_heat_index',
+    'sensor_led_state',
+    'sensor_volume',
+    'sensor_motion_detected',
+    'node_mode',
+    'node_status'
+]
+
 NODE_MODE = {
     0: "Normal",
     1: "Low Power",
@@ -239,7 +259,7 @@ def alerts():
     return render_template("alerts.html")
 
 @views.route('/gpio/<string:id>/<string:level>')
-def setPinLevel(id, level):
+def set_pin_level(id, level):
     st = clock_start()
     try:
         GPIO.output(int(id), int(level))
@@ -333,6 +353,47 @@ def db_delete(area, db_entry_date):
 
     clock_end(st)
     return redirect(url_for(redirect_is))
+
+@views.route("/chart", methods=['GET', 'POST'])
+def chart():
+
+    if request.method == 'POST':
+        graph_type = request.form.get("type") 
+        area = str(request.form.get("area"))
+        column = request.form.get('datatype')
+        pull = Home.query.filter_by(type = area).all()
+        labels = [str(h.date) for h in pull]
+        data = [x for x in range(len(labels))]
+
+        if column == 'sensor_humidity': data = [h.sensor_humidity for h in pull]
+        if column == 'sensor_temperature': data = [h.sensor_temperature for h in pull]
+        if column == 'sensor_heat_index': data = [h.sensor_heat_index for h in pull]
+        if column == 'sensor_led_state': data = [h.sensor_led_state for h in pull]
+        if column == 'sensor_volume': data = [h.sensor_volume for h in pull]
+        if column == 'sensor_motion_detected': data = [h.sensor_motion_detected for h in pull]
+        if column == 'node_mode': data = [h.node_mode for h in pull]
+        if column == 'node_status': data = [h.node_status for h in pull] 
+
+        templateData = {
+            'type': graph_type,
+            'labels': labels,
+            'data': data,
+            'areas': AREAS,
+            'datatypes': DATATYPES,
+            'graphtypes': GRAPH_TYPES
+        } 
+
+        return render_template("sensor-chart.html", **templateData)
+
+    templateData = {
+        'type': 'line',
+        'labels': ['1','2'],
+        'data': [1,2],
+        'areas': AREAS,
+        'datatypes': DATATYPES,
+        'graphtypes': GRAPH_TYPES
+    }
+    return render_template("sensor-chart.html", **templateData)
 
 @views.errorhandler(404)
 def page_not_found(error):

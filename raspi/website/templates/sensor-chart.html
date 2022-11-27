@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% block title %}Mancave - Sensor Chart{% endblock %}
+{%block content %}
+<br>
+<br>
+<form action="/chart" method="POST">
+    <label for="area">Language</label>
+    <select name="area" id="area">
+        {% for name_area in areas %}
+        <option value={{ name_area }}>{{ name_area }}</option>
+        {% endfor %}
+    </select>
+    <label for="datatype">Data Type</label>
+    <select name="datatype" id="datatype">
+        {% for name_datatype in datatypes %}
+        <option value={{ name_datatype }}>{{ name_datatype }}</option>
+        {% endfor %}
+    </select>
+    <label for="type">Graph Type</label>
+    <select name="type" id="type">
+        {% for name_graphtype in graphtypes %}
+        <option value={{ name_graphtype }}>{{ name_graphtype }}</option>
+        {% endfor %}
+    </select>
+    <input type="submit">
+</form>
+
+<div>
+    <canvas id="myChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="text/javascript">
+    function myFunc(vars) {
+        return vars
+    }
+
+    const ctx = document.getElementById('myChart');
+    var graph_type = myFunc({{ type | tojson }});
+    var graph_label = myFunc({{ labels | tojson }});
+    var graph_data = myFunc({{ data | tojson }});
+
+    new Chart(ctx, {
+        type: graph_type,
+        data: {
+            labels: graph_label,
+            datasets: [{
+                label: 'Results',
+                data: graph_data,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
