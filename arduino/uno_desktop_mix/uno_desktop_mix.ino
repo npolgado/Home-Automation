@@ -8,7 +8,7 @@
 #define TIMEOUT 5000                        // in milliseconds
 #define MAX_PAYLOAD_SIZE 100
 #define SENSOR_TIMEOUT 2000                 // 2 second timeout for sensor readings
-#define SENSOR_AVERAGING_PERIOD 300000      // average sensor data every minute
+#define SENSOR_AVERAGING_PERIOD 600000      // average sensor data every minute
 
 DHT dht(DHTPIN, DHTTYPE);
 
