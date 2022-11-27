@@ -51,9 +51,12 @@
         },
         options: {
             scales: {
-                y: {
-                    beginAtZero: true
-                }
+                y: [{
+                    ticks: {
+                        min: Math.min.apply(this, graph_data) - 5,
+                        max: Math.max.apply(this, graph_data) + 5,
+                    }
+                }]
             }
         }
     });
