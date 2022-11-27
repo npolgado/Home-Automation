@@ -33,16 +33,6 @@ class Event(db.Model):
     area = db.Column(db.String(300))
     type = db.Column(db.String(300))
 
-# Report of Home based on latest events from Bed, Bath, or Beyond...
-# class Home(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     date = db.Column(db.DateTime(timezone=True), default=func.now())
-#     temp_bed = db.Column(db.Float)
-#     temp_bath = db.Column(db.Float)
-#     temp_beyond = db.Column(db.Float)
-#     humidity = db.Column(db.Float)
-#     sound = db.Column(db.Float)
-#     light = db.Column(db.Float)
 
 ''' These are based on GPT3'''
 # class Home(db.Model):

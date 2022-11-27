@@ -283,7 +283,6 @@ def sensor_history():
     st = clock_start() 
     pull = Home.query.all()
     clock_end(st)
-    print(pull)
     return render_template("sensor-history.html", all_readings=pull)
 
 @views.route('/log/<string:area>/<data_0>-<data_1>-<data_2>-<data_3>-<data_4>-<data_5>-<data_6>-<data_7>', methods=['GET', 'POST'])
@@ -358,7 +357,6 @@ def db_delete(area, db_entry_date):
 def chart():
 
     if request.method == 'POST':
-        graph_type = request.form.get("type") 
         area = str(request.form.get("area"))
         column = request.form.get('datatype')
         pull = Home.query.filter_by(type = area).all()
@@ -375,7 +373,6 @@ def chart():
         if column == 'node_status': data = [h.node_status for h in pull] 
 
         templateData = {
-            'type': graph_type,
             'labels': labels,
             'data': data,
             'areas': AREAS,
@@ -384,15 +381,22 @@ def chart():
         } 
 
         return render_template("sensor-chart.html", **templateData)
+    try:
+        templateData = {
+            'labels': request.form.get("labels"),
+            'data': request.form.get("labels"),
+            'areas': AREAS,
+            'datatypes': DATATYPES,
+            'graphtypes': GRAPH_TYPES
+        }
+    except Exception as e:
+        print(f"[ERROR] {e}\n")
+        templateData = {
+            'areas': AREAS,
+            'datatypes': DATATYPES,
+            'graphtypes': GRAPH_TYPES
+        }
 
-    templateData = {
-        'type': 'line',
-        'labels': ['1','2'],
-        'data': [1,2],
-        'areas': AREAS,
-        'datatypes': DATATYPES,
-        'graphtypes': GRAPH_TYPES
-    }
     return render_template("sensor-chart.html", **templateData)
 
 @views.errorhandler(404)

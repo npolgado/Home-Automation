@@ -15,12 +15,6 @@
         <option value={{ name_datatype }}>{{ name_datatype }}</option>
         {% endfor %}
     </select>
-    <label for="type">Graph Type</label>
-    <select name="type" id="type">
-        {% for name_graphtype in graphtypes %}
-        <option value={{ name_graphtype }}>{{ name_graphtype }}</option>
-        {% endfor %}
-    </select>
     <input type="submit">
 </form>
 
@@ -35,12 +29,11 @@
     }
 
     const ctx = document.getElementById('myChart');
-    var graph_type = myFunc({{ type | tojson }});
     var graph_label = myFunc({{ labels | tojson }});
     var graph_data = myFunc({{ data | tojson }});
 
     new Chart(ctx, {
-        type: graph_type,
+        type: 'line',
         data: {
             labels: graph_label,
             datasets: [{
