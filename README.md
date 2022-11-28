@@ -27,6 +27,8 @@ Using arduino uno's we can crete IoT wireless nodes which will communicate with 
 ## TO DO:
 
 - WIRELESS COMMUNICATION -- just get a wifi uno lol
+- Setup temperature adjustment based on outside weather
+- Setup fan controls
 - Add setup.py for easy install
 - Make sure to document raspi setup from arduino setup
 - Document Schematics (breadboard currently)

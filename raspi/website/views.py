@@ -64,7 +64,6 @@ NODE_STATUS = {
     6: "IR_ERROR"
 }
 
-
 def clock_start():
     return time.monotonic()
 
@@ -207,8 +206,10 @@ def links():
             ).first()
             if duplicate: pass
             else:
+                print("\n[LOG] updating db...")
                 db.session.add(new_entry)
                 db.session.commit()
+                print("\n[LOG] db updated!\n")
         except Exception as e:
             print(f"\n[ERROR]\n{e}\n")
             db.session.rollback()
@@ -294,7 +295,7 @@ def db_collect(area, data_0, data_1, data_2, data_3, data_4, data_5, data_6, dat
         str_mode = NODE_MODE[int(data_6)]
         str_status = NODE_STATUS[int(data_7)]
     except Exception as e:
-        print(f"\n[ERROR] couldn't find node status or mode...\n")
+        print("\n[ERROR] couldn't find node status or mode...\n")
         str_mode = int(data_6)
         str_status = int(data_7)
     
@@ -311,9 +312,10 @@ def db_collect(area, data_0, data_1, data_2, data_3, data_4, data_5, data_6, dat
     )
 
     try:
-        print("\n[LOG] adding to db\n")
+        print("\n[LOG] adding to db...")
         db.session.add(new_reading)
         db.session.commit()
+        print("\n[LOG] db updated!\n")
     except Exception as e:
         print(f"\n[ERROR]\n{e}\n")
         db.session.rollback()
