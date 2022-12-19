@@ -1,8 +1,9 @@
+from flask import (Blueprint, abort, flash, jsonify, redirect, render_template,
+                   request, url_for)
 from sqlalchemy.orm.exc import NoResultFound
-from flask import Blueprint, render_template, request, flash, jsonify
-from flask import abort, redirect, url_for
-from .models import Daily, Home, Event
+
 from . import db
+from .models import Daily, Event, Home
 
 try:
     import RPi.GPIO as GPIO
@@ -10,18 +11,24 @@ except Exception as e:
     print(f"\n[ERROR] {e}\n")
     pass
 
-import json
 import datetime
+import json
+import os
+import platform
+import re
+import subprocess
+import sys
+import time
 import urllib
 import urllib.request
-from bs4 import BeautifulSoup
-import os, time, sys, math, re
-import subprocess
-import datetime
-import platform
-import requests
 from string import Template
-import time
+
+import openai
+import requests
+from bs4 import BeautifulSoup
+
+# Load your API key from an environment variable or secret management service
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 views = Blueprint('views', __name__)
 
@@ -406,6 +413,50 @@ def chart():
         } 
 
     return render_template("sensor-chart.html", **templateData)
+
+@views.route("/gpt", methods=['GET', 'POST'])
+def gpt():
+    st = clock_start()
+    if request.method == 'POST':
+        print("[LOG] getting form data...")
+        prompt = str(request.form.get("prompt"))
+        max_length = int(request.form.get("max_length"))
+        temp = float(request.form.get("temperature"))
+        number_time = int(request.form.get("number_choices"))
+
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=prompt,
+            temperature=temp,
+            max_tokens=max_length,
+            echo=True,
+            best_of=number_time
+        )
+
+        print("[LOG] FOUND {} RESPONSES".format(len(response["choices"])))
+        answer = response["choices"][0]["text"]
+
+        templateData = {
+            'prompt': prompt,
+            'max_length': max_length,
+            'temperature': temp,
+            'number_choices': number_time,
+            'response': answer
+        } 
+        clock_end(st)
+        return render_template("gpt.html", **templateData)
+    
+    print("loading fresh")
+    templateData = {
+        'prompt': "Ahoy Land Lover!! Release Thou Gold",
+        'max_length': 100,
+        'temperature': 0.1,
+        'number_choices': 1,
+        'response': 'Output:'
+    }
+
+    clock_end(st)
+    return render_template("gpt.html", **templateData)
 
 @views.errorhandler(404)
 def page_not_found(error):
