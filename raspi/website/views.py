@@ -22,13 +22,14 @@ import time
 import urllib
 import urllib.request
 from string import Template
+import numpy as np
 
 import openai
 import requests
 from bs4 import BeautifulSoup
 
 # Load your API key from an environment variable or secret management service
-openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = "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"#os.getenv("OPENAI_API_KEY")
 
 views = Blueprint('views', __name__)
 
@@ -266,6 +267,7 @@ def alerts():
 def set_pin_level(id, level):
     st = clock_start()
     try:
+        GPIO.setmode(GPIO.BOARD)
         GPIO.output(int(id), int(level))
     except Exception as e:
         print(f"\n[ERROR] {e}\n")
@@ -414,8 +416,8 @@ def chart():
 
     return render_template("sensor-chart.html", **templateData)
 
-@views.route("/gpt", methods=['GET', 'POST'])
-def gpt():
+@views.route("/gpt/completions", methods=['GET', 'POST'])
+def query():
     st = clock_start()
     if request.method == 'POST':
         print("[LOG] getting form data...")
@@ -444,9 +446,9 @@ def gpt():
             'response': answer
         } 
         clock_end(st)
-        return render_template("gpt.html", **templateData)
+        return render_template("gpt_completions.html", **templateData)
     
-    print("loading fresh")
+    print("[LOG] loading fresh completion query")
     templateData = {
         'prompt': "Ahoy Land Lover!! Release Thou Gold",
         'max_length': 100,
@@ -456,7 +458,50 @@ def gpt():
     }
 
     clock_end(st)
-    return render_template("gpt.html", **templateData)
+    return render_template("gpt_completions.html", **templateData)
+
+@views.route("/gpt/images", methods=['GET', 'POST'])
+def query_image():
+    st = clock_start()
+    if request.method == 'POST':
+        prompt = str(request.form.get("prompt"))
+        num_images = int(request.form.get("num_images"))
+        width = int(request.form.get("image_width"))
+        height = int(request.form.get("image_height"))
+        image_size = str(f"{width}x{height}")
+        print(f"[LOG] got form data...\nPrompt:\t{prompt}\nNumber of Images:\t{num_images}\nWidth:\t\t{width}\nHeight:\t\t{height}")
+
+        response = openai.Image.create(
+            prompt=prompt,
+            n=num_images,
+            size=image_size
+        )
+
+        print("[LOG] FOUND {} RESPONSES".format(len(np.array(response['data']))))
+        image_urls = np.array(response['data'])
+        # sys.exit()
+
+        templateData = {
+            'prompt': prompt,
+            'num_images': num_images,
+            'image_width': width,
+            'image_height': height,
+            'results': image_urls
+        } 
+        clock_end(st)
+        return render_template("gpt_images.html", **templateData)
+
+    print("[LOG] loading fresh query page")
+    templateData = {
+        'prompt': str("a bumble bee fighting a carrot on the moon"),
+        'num_images': 1,
+        'image_width': 1024,
+        'image_height': 1024,
+        'results': list()
+    } 
+
+    clock_end(st)
+    return render_template("gpt_images.html", **templateData)
 
 @views.errorhandler(404)
 def page_not_found(error):
