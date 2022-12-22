@@ -29,7 +29,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # Load your API key from an environment variable or secret management service
-openai.api_key = "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"#os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 views = Blueprint('views', __name__)
 
