@@ -98,13 +98,27 @@
         const minutes = now.getMinutes();
         const seconds = now.getSeconds();
 
-        const hourAngle = (hours * 30) + (minutes * 0.5) + 90;
-        const minuteAngle = (minutes * 6) + (seconds * 0.1) + 90;
+        const hourAngle = (hours * 30) + (minutes * 0.5);
+        const minuteAngle = (minutes * 6) + (seconds * 0.1);
         const secondAngle = (seconds * 6) + 90;
 
         document.querySelector('.hour-hand').style.transform = `rotate(${hourAngle}deg)`;
         document.querySelector('.minute-hand').style.transform = `rotate(${minuteAngle}deg)`;
         document.querySelector('.second-hand').style.transform = `rotate(${secondAngle}deg)`;
+
+        const options = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric',
+          second: 'numeric',
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        };
+
+        const formattedDate = now.toLocaleString(undefined, options);
+        document.querySelector('.date').textContent = formattedDate;
       }
 
       setInterval(updateClock, 1000);
