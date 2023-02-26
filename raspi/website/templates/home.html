@@ -2,6 +2,61 @@
 <html>
   <head>
     <title>Welcome to the Mancave</title>
+    <style>    
+      body {
+        background-color: #ffffff;
+      }
+      .clock {
+        width: 300px;
+        height: 300px;
+        background-color: #5a5a5a;
+        border-radius: 50%;
+        position: relative;
+        margin: 0 auto;
+      }
+    
+      .hour-hand,
+      .minute-hand,
+      .second-hand {
+        background-color: #000;
+        position: absolute;
+        transform-origin: center bottom;
+      }
+    
+      .hour-hand {
+        width: 6px;
+        height: 80px;
+        left: 147px;
+        top: 60px;
+        border-radius: 3px 3px 0 0;
+      }
+    
+      .minute-hand {
+        width: 4px;
+        height: 120px;
+        left: 148px;
+        top: 40px;
+        border-radius: 3px 3px 0 0;
+      }
+    
+      .second-hand {
+        width: 2px;
+        height: 140px;
+        left: 149px;
+        top: 20px;
+        border-radius: 3px 3px 0 0;
+      }
+    
+      .center-dot {
+        width: 16px;
+        height: 16px;
+        background-color: #000;
+        border-radius: 50%;
+        position: absolute;
+        left: 142px;
+        top: 142px;
+      }
+    </style>
   </head>
   <body>
     <h1>Welcome to the Mancave</h1>
@@ -30,6 +85,30 @@
         <p>{{ tracker_3_desc }}</p>
       </div>
     </div>
+    <div class="clock">
+      <div class="hour-hand"></div>
+      <div class="minute-hand"></div>
+      <div class="second-hand"></div>
+      <div class="center-dot"></div>
+    </div>
+    <script>
+      function updateClock() {
+        const now = new Date();
+        const hours = now.getHours() % 12;
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+
+        const hourAngle = (hours * 30) + (minutes * 0.5) + 90;
+        const minuteAngle = (minutes * 6) + (seconds * 0.1) + 90;
+        const secondAngle = (seconds * 6) + 90;
+
+        document.querySelector('.hour-hand').style.transform = `rotate(${hourAngle}deg)`;
+        document.querySelector('.minute-hand').style.transform = `rotate(${minuteAngle}deg)`;
+        document.querySelector('.second-hand').style.transform = `rotate(${secondAngle}deg)`;
+      }
+
+      setInterval(updateClock, 1000);
+    </script>
   </body>
 </html>
 {% endblock %}

@@ -160,6 +160,12 @@ def home():
     clock_end(st)
     return render_template("home.html", **templateData)
 
+@views.route('/assistant', methods=['GET'])
+def assistant():
+    st = clock_start()
+    clock_end(st)
+    return render_template("home_assist.html")
+
 @views.route('/links', methods=['GET'])
 def links():
     st = clock_start()

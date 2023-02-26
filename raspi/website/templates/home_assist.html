@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% block title %}Mancave - H_A{% endblock %} {%
+block content %}
+<head>
+    <title>Raspberry Pi Dashboard</title>
+    <style>
+        /* Insert your CSS styles here */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+    
+        iframe {
+            width: 100%;
+            height: calc(100vh - 100px);
+            /* Subtract the height of the header from the viewport height */
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <p>Here's your Home Assistant Lovelace dashboard:</p>
+    <iframe src="http:/localhost:8123/lovelace/home"></iframe>
+</body>
+
+{% endblock %}
