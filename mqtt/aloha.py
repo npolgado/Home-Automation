@@ -32,9 +32,12 @@ client.loop_start()
 
 while True:
     # generate a random string to send for each client
-    random_string_tx2 = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=20))
+    # random_string_tx2 = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=20))
 
-    msg_info = client.publish('test', random_string_tx2, qos=1)
+    temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read().split("=")[1][:-3]
+    print(temp)
+
+    msg_info = client.publish('/sys/temp', temp, qos=1)
     unacked_publish.add(msg_info.mid)
 
     # Wait for all message to be published
