@@ -1,7 +1,10 @@
 import time
 import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
+from paho.mqtt.enums import MQTTProtocolVersion
 import random
 import os
+import sys
 
 RATE = 0.2
 IP_TX2 = os.environ.get("IP_TX2")
@@ -35,19 +38,42 @@ while True:
     # random_string_tx2 = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=20))
 
     temp = os.popen("/opt/vc/bin/vcgencmd measure_temp").read().split("=")[1][:-3]
-    print(temp)
+    # print(temp)
 
-    msg_info = client.publish('/sys/temp', temp, qos=1)
-    unacked_publish.add(msg_info.mid)
+    free_mem = os.popen("free -m").read().split("\n")[1].split()[3]
+    # print(free_mem)
 
-    # Wait for all message to be published
-    while len(unacked_publish):
-        time.sleep(0.1)
+    free_storage = os.popen("df -h /").read().split("\n")[1].split()[3] 
+    # print(free_storage) 
 
-    # Due to race-condition described above, the following way to wait for all publish is safer
-    msg_info.wait_for_publish()
+    msgs = [
+        ('/sys/temp', temp, 1, False),
+        ('/sys/mem', free_mem, 1, False),
+        ('/sys/storage', free_storage, 1, False)
+    ]
+    publish.multiple(msgs, hostname='localhost', protocol=MQTTProtocolVersion.MQTTv5)
+
+    # msg_temp = client.publish('/sys/temp', temp, qos=1)
+    # unacked_publish.add(msg_temp.mid)
+
+    # msg_freem = client.publish('/sys/mem', temp, qos=1)
+    # unacked_publish.add(msg_freem.mid)
+
+    # msg_storage = client.publish('/sys/storage', temp, qos=1)
+    # unacked_publish.add(msg_storage.mid)
+
+    # # Wait for all message to be published
+    # while len(unacked_publish):
+    #     time.sleep(0.1)
+
+    # # Due to race-condition described above, the following way to wait for all publish is safer
+    # msg_temp.wait_for_publish()
+    # msg_freem.wait_for_publish()
+    # msg_storage.wait_for_publish()
+
+    print("\nSENT!\n")
 
     time.sleep(RATE)
 
-client.disconnect()
 client.loop_stop()
+client.disconnect()
