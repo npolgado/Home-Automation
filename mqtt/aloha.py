@@ -1,6 +1,7 @@
 import time
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
+import paho.mqtt.subscribe as subscribe
 from paho.mqtt.enums import MQTTProtocolVersion
 import random
 import os
@@ -8,6 +9,13 @@ import sys
 
 RATE = 0.2
 IP_TX2 = os.environ.get("IP_TX2")
+
+def on_message_print(client, userdata, message):
+    print("%s %s" % (message.topic, message.payload))
+    userdata["message_count"] += 1
+    if userdata["message_count"] >= 5:
+        # it's possible to stop the program by disconnecting
+        client.disconnect()
 
 def on_publish(client, userdata, mid, reason_code, properties):
     # reason_code and properties will only be present in MQTTv5. It's always unset in MQTTv3
@@ -32,6 +40,8 @@ client.on_publish = on_publish
 client.user_data_set(unacked_publish)
 client.connect(IP_TX2)
 client.loop_start()
+
+# subscribe.callback(on_message_print, "paho/test/topic", hostname=IP_TX2, userdata={"message_count": 0})
 
 while True:
     # generate a random string to send for each client
