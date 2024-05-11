@@ -1,13 +1,11 @@
 import logging
 import paho.mqtt.client as mqtt
 
+IP_TX2 = "192.168.0.43"
+IP_ALOHA = "192.168.0.17"
+RATE = 0.2
+
 logging.basicConfig(level=logging.DEBUG)
-
-mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-mqttc.enable_logger()
-
-mqttc.connect("mqtt.eclipseprojects.io", 1883, 60)
-mqttc.loop_start()
 
 def on_log(client, userdata, paho_log_level, messages):
     if paho_log_level == mqtt.LogLevel.MQTT_LOG_ERR:
@@ -15,6 +13,7 @@ def on_log(client, userdata, paho_log_level, messages):
         except: print(messages)
 
 mqttc = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+mqttc.enable_logger()
 mqttc.on_log = on_log
 
 mqttc.connect("mqtt.eclipseprojects.io", 1883, 60)
